@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kids Typing Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap">
+<style>
+/* VOICE: playful, warm, encouraging; never punishing
+   IDEA: a toy box of little worlds (a sunny sky, a jungle) where words ride along
+   PICTURE: the play stage itself: balloons rising, or animals crossing a jungle
+   COLOUR and TYPE: sky blue and jungle green fields, coral accent; Fredoka rounded lettering
+   LAYOUT: small header with stats, big stage, keyboard guide beneath */
+:root{color-scheme:light dark;
+  --bg:light-dark(#eaf7ff,#10173a);--ink:light-dark(#17324d,#eef3ff);
+  --sky1:light-dark(#7cc8ff,#1b2a6b);--sky2:light-dark(#d9f1ff,#2c3f8f);
+  --grass:light-dark(#5cc46b,#2a6e45);--grass2:light-dark(#3fa553,#1f5534);
+  --accent:#ff6b57;--card:light-dark(#ffffff,#1d2756);--muted:light-dark(#4f6780,#aab6dc);
+  --key:light-dark(#ffffff,#26306a);--keyedge:light-dark(#c9dbea,#121a45)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Fredoka,"Trebuchet MS",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:980px;margin:0 auto;padding:14px max(3vw,10px) 24px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin-bottom:10px}
+h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0;font-weight:700;text-wrap:balance}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--card);border-radius:14px;padding:4px 12px;font-weight:600;box-shadow:0 2px 0 var(--keyedge);white-space:nowrap}
+.stat b{font-size:20px}
+#time{font-variant-numeric:tabular-nums}
+#timer.low{background:var(--accent);color:#fff}
+.tools{display:flex;gap:8px}
+@media(pointer:coarse){body.playing .kb,body.playing .hint{display:none}body.playing .wrap{padding-top:6px}body.playing h1{font-size:22px}}
+
+/* stage */
+.stage{position:relative;height:clamp(340px,58vh,520px);border-radius:24px;overflow:hidden;
+  background:linear-gradient(180deg,var(--sky1),var(--sky2));box-shadow:0 6px 0 var(--keyedge);cursor:text;touch-action:manipulation}
+.stage.menu{height:auto!important;min-height:340px}
+.stage.menu #menu{position:relative;min-height:340px}
+.sky-scene,.jungle-scene{position:absolute;inset:0;pointer-events:none}
+.stage:is(.jungle,.sea,.arctic,.world) .sky-scene,.stage:not(.world) .world-scene,.stage:not(.jungle) .jungle-scene,.stage:not(.sea) .sea-scene,.stage:not(.arctic) .arctic-scene{display:none}
+.sea-scene,.arctic-scene{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sky-scene::after{content:"";position:absolute;inset:auto -10% -60px -10%;height:120px;border-radius:50%;background:radial-gradient(ellipse at 50% 0,var(--grass),var(--grass2))}
+.cloud{position:absolute;background:light-dark(#fff,#3a4b9a);opacity:.85;border-radius:40px;height:26px}
+.cloud::before,.cloud::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cloud::before{width:34px;height:34px;left:14px;top:-16px}.cloud::after{width:26px;height:26px;left:40px;top:-10px}
+
+/* jungle scene: back canopy, path, river */
+.stage.jungle{background:linear-gradient(180deg,light-dark(#c9efb0,#173a2a) 0,light-dark(#9ad889,#1f4a32) 40%)}
+.canopy{position:absolute;left:0;right:0;top:0;height:44%}
+.canopy.back{background:radial-gradient(circle at 50% 70%,light-dark(#6fbf5e,#2b6a3f) 0 46px,transparent 47px) 0 10px/84px 100% repeat-x}
+.canopy.front{top:8%;background:radial-gradient(circle at 50% 75%,light-dark(#4fa34a,#235a35) 0 38px,transparent 39px) 40px 20px/110px 100% repeat-x}
+.vine{position:absolute;top:0;width:6px;border-radius:3px;background:repeating-linear-gradient(180deg,light-dark(#3d8a3a,#2f6e3a) 0 14px,light-dark(#5cb456,#3c8a48) 14px 22px)}
+.path{position:absolute;left:0;right:0;top:40%;height:28%;background:linear-gradient(180deg,light-dark(#8cc66d,#2e5f38) 0 10%,light-dark(#e2bd78,#6b5434) 10% 90%,light-dark(#8cc66d,#2e5f38) 90%)}
+.path::after{content:"";position:absolute;left:0;right:0;top:45%;height:6px;background:repeating-linear-gradient(90deg,light-dark(#cfa560,#5a462b) 0 26px,transparent 26px 60px)}
+.river{position:absolute;left:0;right:0;bottom:0;height:32%;background:repeating-linear-gradient(170deg,transparent 0 22px,rgba(255,255,255,.18) 22px 25px),linear-gradient(180deg,light-dark(#4fb3e8,#1f5f8f),light-dark(#2d8fd0,#174a75))}
+.river::before{content:"";position:absolute;left:0;right:0;top:-10px;height:12px;background:radial-gradient(circle at 10px 12px,light-dark(#4fa34a,#235a35) 0 10px,transparent 11px) 0 0/20px 12px repeat-x}
+
+/* sea scene: light rays, sand, swaying seaweed, rising bubbles */
+.stage.sea{background:linear-gradient(180deg,light-dark(#7fdcf8,#145a85) 0,light-dark(#2ea3d8,#0c3d63) 55%,light-dark(#17729f,#072a46))}
+.surface{position:absolute;left:0;right:0;top:0;height:12px;background:radial-gradient(circle at 12px 0,light-dark(rgba(255,255,255,.7),rgba(255,255,255,.25)) 0 11px,transparent 12px) 0 0/24px 12px repeat-x}
+.rays{position:absolute;inset:0;background:repeating-linear-gradient(105deg,rgba(255,255,255,.13) 0 34px,transparent 34px 120px);-webkit-mask-image:linear-gradient(180deg,#000,transparent 75%);mask-image:linear-gradient(180deg,#000,transparent 75%)}
+.sand{position:absolute;left:-5%;right:-5%;bottom:-18px;height:20%;border-radius:50% 50% 0 0/40% 40% 0 0;background:radial-gradient(circle,light-dark(#d9b56a,#5e4c2e) 0 2px,transparent 3px) 0 0/22px 18px,light-dark(#f1d394,#7a6640)}
+.weed{position:absolute;bottom:6%;width:12px;border-radius:12px 12px 4px 4px;background:linear-gradient(90deg,light-dark(#2f9e5a,#1f6b40),light-dark(#55c27a,#2f8a55));transform-origin:50% 100%;animation:sway 3s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.bubble{position:absolute;bottom:-20px;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:rise 7s linear infinite}
+@keyframes rise{to{transform:translateY(-560px) translateX(14px);opacity:0}}
+
+/* arctic scene: northern lights, snowy hills, icy water, falling snow */
+.stage.arctic{background:linear-gradient(180deg,light-dark(#a9c8f0,#081433) 0,light-dark(#dcecfb,#1a3466) 45%)}
+.aurora{position:absolute;left:-10%;right:-10%;top:2%;height:34%;filter:blur(14px);opacity:.7;
+  background:radial-gradient(ellipse 30% 60% at 20% 50%,#4cf2a0,transparent 70%),radial-gradient(ellipse 28% 55% at 55% 40%,#7b7bff,transparent 70%),radial-gradient(ellipse 30% 60% at 85% 55%,#3fe0c5,transparent 70%);
+  animation:shimmer 8s ease-in-out infinite alternate}
+@keyframes shimmer{to{transform:translateX(6%) scaleY(1.2)}}
+.hills{position:absolute;left:0;right:0;top:38%;height:34%;
+  background:radial-gradient(ellipse 40% 50% at 20% 0,light-dark(#fff,#c9d8ee) 0 98%,transparent 100%),radial-gradient(ellipse 45% 55% at 80% 0,light-dark(#f4f9ff,#b7c9e4) 0 98%,transparent 100%),linear-gradient(180deg,transparent 18%,light-dark(#fff,#c9d8ee) 18%)}
+.pines{position:absolute;left:0;right:0;top:30%;height:14%;background:conic-gradient(from 150deg at 50% 0,light-dark(#2f6d5a,#1d4a40) 0 60deg,transparent 0) 0 0/46px 100% repeat-x;-webkit-mask-image:linear-gradient(90deg,#000 0 22%,transparent 22% 70%,#000 70%);mask-image:linear-gradient(90deg,#000 0 22%,transparent 22% 70%,#000 70%)}
+.icewater{position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(180deg,light-dark(#4b8fc9,#13325e),light-dark(#2f6aa3,#0a1f40))}
+.floe{position:absolute;height:12px;border-radius:8px;background:light-dark(#fff,#d8e6f7);box-shadow:0 4px 0 light-dark(#a8c9e8,#6f8db3)}
+.snowfall{position:absolute;inset:-100% 0 0;background:radial-gradient(circle,#fff 0 2px,transparent 3px) 0 0/60px 60px,radial-gradient(circle,rgba(255,255,255,.8) 0 1.5px,transparent 2.5px) 30px 20px/45px 45px;animation:fall 9s linear infinite;opacity:.8}
+@keyframes fall{to{transform:translateY(50%)}}
+
+/* world map */
+.stage.world{background:light-dark(#9fd3f2,#0e2a4d)}
+.world-scene{position:absolute;inset:0;overflow:hidden}
+.world-scene svg{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px)}
+.world-scene .land{fill:light-dark(#f3e3b5,#3d5a6e);stroke:light-dark(#fff,#0e2a4d);stroke-width:.5;transition:fill .3s}
+.world-scene .land.active{fill:#ffd34d}
+.world-scene .land.found{fill:light-dark(#6cc77a,#3c9a5a)}
+.world-scene .grid{stroke:light-dark(rgba(255,255,255,.5),rgba(255,255,255,.12));stroke-width:1;fill:none}
+.map-note{position:absolute;left:12px;bottom:8px;font-size:13px;color:var(--muted);background:var(--card);border-radius:8px;padding:2px 8px}
+.pin{position:absolute;left:0;top:0;z-index:3;transform:translate(-50%,-100%);display:grid;justify-items:center;pointer-events:none}
+.pin .tag{font-size:20px}
+.pin .bar{width:100%;height:5px;border-radius:3px;background:rgba(0,0,0,.15);margin-top:3px;overflow:hidden}
+.pin .bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.pin::after{content:"";width:0;height:0;border:7px solid transparent;border-top-color:#fff;margin-top:-1px}
+.pin.locked .tag{outline:3px solid var(--accent);outline-offset:2px}
+.pin.caught{animation:caught .45s ease-out forwards}
+
+/* balloons */
+.balloon{position:absolute;bottom:0;left:0;width:78px;height:92px;margin-left:-39px;z-index:2;
+  border-radius:50% 50% 47% 53%/58% 58% 42% 42%;display:grid;place-items:center;
+  color:#fff;font-weight:700;font-size:38px;text-shadow:0 2px 0 rgba(0,0,0,.25);
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.65) 0 8%,transparent 22%),var(--c);
+  box-shadow:inset -8px -10px 0 rgba(0,0,0,.12)}
+.balloon::after{content:"";position:absolute;bottom:-34px;left:50%;width:2px;height:34px;background:light-dark(#6a7f95,#c8d2f0);opacity:.7}
+.balloon::before{content:"";position:absolute;bottom:-7px;left:50%;margin-left:-6px;border:6px solid transparent;border-bottom-color:var(--c);transform:rotate(180deg)}
+.balloon.word{width:auto;min-width:96px;padding:0 16px;font-size:28px;margin-left:-48px;border-radius:46px/52px;height:80px}
+.balloon.long{font-size:24px}
+.done{opacity:.4}
+.balloon.locked{outline:4px solid #fff;outline-offset:3px}
+.balloon.pop{animation:pop .25s ease-out forwards}
+@keyframes pop{to{transform:scale(1.7);opacity:0}}
+
+/* animals */
+.animal{position:absolute;left:0;top:0;z-index:2;width:120px;margin-left:-60px;display:grid;justify-items:center;gap:2px}
+.tag{background:#fff;color:#17324d;border-radius:12px;padding:0 10px;font-weight:700;font-size:22px;line-height:1.35;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.animal.locked .tag{outline:3px solid var(--accent);outline-offset:2px}
+.sprite{font-size:50px;line-height:1;animation:bob .5s ease-in-out infinite alternate}
+.sprite span{display:inline-block}
+.sprite.flip span{transform:scaleX(-1)}
+.sprite.swim{animation-duration:.9s}.sprite.fly{animation-duration:.3s}
+@keyframes bob{to{transform:translateY(-5px)}}
+.animal.caught{animation:caught .45s ease-out forwards}
+@keyframes caught{to{transform:var(--t) translateY(-50px) scale(1.3);opacity:0}}
+
+.stage.oops{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.burst{position:absolute;z-index:3;font-weight:700;color:#fff;font-size:22px;pointer-events:none;animation:up .7s ease-out forwards;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+@keyframes up{to{transform:translateY(-40px);opacity:0}}
+
+/* menus */
+.overlay{position:absolute;inset:0;z-index:5;display:flex;overflow-y:auto;padding:16px;background:light-dark(rgba(217,241,255,.55),rgba(16,23,58,.6));backdrop-filter:blur(3px)}
+.panel{margin:auto;background:var(--card);border-radius:22px;padding:18px 20px;max-width:460px;width:100%;text-align:center;box-shadow:0 6px 0 var(--keyedge)}
+.panel h2{margin:0 0 4px;font-size:30px;line-height:1.1}
+.panel p{margin:0 0 10px;color:var(--muted)}
+.label{font-weight:600;margin:12px 0 6px;text-align:start}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#modes,#speeds,#games{grid-template-columns:repeat(2,minmax(0,1fr))}
+#games button:last-child:nth-child(odd){grid-column:1/-1}
+#games button{display:grid;justify-items:center;align-content:start;gap:2px;padding:10px 4px;font-size:15px;line-height:1.2}
+#games .em{font-size:34px;line-height:1}
+button{font:inherit;font-weight:600;border:0;border-radius:14px;min-height:44px;padding:8px 10px;cursor:pointer;color:var(--ink);background:var(--key);box-shadow:0 3px 0 var(--keyedge)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
+.go{background:var(--accent);color:#fff;font-size:22px;width:100%;margin-top:16px;min-height:54px}
+.players{display:flex;flex-wrap:wrap;gap:8px}
+.players:empty::before{content:"No players yet. Add a name below.";color:var(--muted);font-size:14px}
+.add{display:flex;gap:8px;margin-top:8px}
+.add input{flex:1;font:inherit;font-size:16px;min-height:44px;border-radius:14px;border:2px solid var(--keyedge);padding:6px 12px;background:var(--bg);color:var(--ink)}
+.add input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.remove{background:none;box-shadow:none;color:var(--muted);font-size:14px;min-height:36px;padding:4px 6px;margin-top:4px;text-decoration:underline}
+.remove.sure{color:var(--accent)}
+.need{color:var(--accent)!important;font-weight:600}
+
+/* keyboard guide */
+.kb{margin-top:16px;display:grid;gap:6px;justify-items:center}
+.row{display:flex;gap:5px}
+.k{width:clamp(26px,7.6vw,52px);height:clamp(34px,8vw,52px);border-radius:10px;display:grid;place-items:center;font-weight:600;font-size:clamp(14px,3.2vw,20px);
+  background:var(--key);box-shadow:0 3px 0 var(--keyedge);position:relative;transition:transform .1s}
+.k.space{width:clamp(150px,40vw,280px);font-size:13px}
+.k.home{background:light-dark(#e6f6ea,#24434a)}
+.k.bump::after{content:"";position:absolute;bottom:5px;width:12px;height:3px;border-radius:2px;background:currentColor;opacity:.5}
+.k.hot{background:#ffd34d;color:#3a2a00;transform:translateY(-3px)}
+.k.hit{background:var(--grass);color:#fff}
+.hint{color:var(--muted);font-size:14px;text-align:center;margin-top:10px}
+#typer{position:absolute;opacity:0;width:1px;height:1px;left:0;top:0;font-size:16px}
+@media(prefers-reduced-motion:reduce){.balloon.pop,.burst,.stage.oops,.sprite,.animal.caught,.weed,.bubble,.aurora,.snowfall{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Kids Typing Games</h1>
+    <div class="stats">
+      <span class="stat" id="who" hidden></span>
+      <span class="stat">Score <b id="score">0</b></span>
+      <span class="stat">Streak <b id="streak">0</b></span>
+      <span class="stat" id="timer" aria-label="Time left">Time <b id="time">2:00</b></span>
+      <span class="tools"><button id="pauseBtn" type="button" hidden>Pause</button><button id="quitBtn" type="button" hidden>Quit</button></span>
+    </div>
+  </header>
+
+  <div class="stage menu" id="stage">
+    <div class="sky-scene">
+      <div class="cloud" style="left:8%;top:14%;width:90px"></div>
+      <div class="cloud" style="left:62%;top:8%;width:110px"></div>
+      <div class="cloud" style="left:38%;top:34%;width:70px"></div>
+    </div>
+    <div class="jungle-scene">
+      <div class="canopy back"></div>
+      <div class="canopy front"></div>
+      <div class="vine" style="left:12%;height:30%"></div>
+      <div class="vine" style="left:47%;height:22%"></div>
+      <div class="vine" style="left:83%;height:34%"></div>
+      <div class="path"></div>
+      <div class="river"></div>
+    </div>
+    <div class="sea-scene">
+      <div class="rays"></div>
+      <div class="surface"></div>
+      <div class="bubble" style="left:9%;animation-delay:0s"></div>
+      <div class="bubble" style="left:28%;animation-delay:2.5s;width:8px;height:8px"></div>
+      <div class="bubble" style="left:52%;animation-delay:4.2s"></div>
+      <div class="bubble" style="left:71%;animation-delay:1.3s;width:9px;height:9px"></div>
+      <div class="bubble" style="left:90%;animation-delay:5.6s"></div>
+      <div class="weed" style="left:5%;height:26%"></div>
+      <div class="weed" style="left:8%;height:18%;animation-delay:-1s"></div>
+      <div class="weed" style="left:44%;height:22%;animation-delay:-2s"></div>
+      <div class="weed" style="left:78%;height:30%;animation-delay:-.5s"></div>
+      <div class="weed" style="left:81%;height:20%;animation-delay:-1.6s"></div>
+      <div class="sand"></div>
+    </div>
+    <div class="arctic-scene">
+      <div class="aurora"></div>
+      <div class="pines"></div>
+      <div class="hills"></div>
+      <div class="icewater"></div>
+      <div class="floe" style="left:8%;bottom:20%;width:70px"></div>
+      <div class="floe" style="left:40%;bottom:8%;width:110px"></div>
+      <div class="floe" style="left:76%;bottom:17%;width:60px"></div>
+      <div class="snowfall"></div>
+    </div>
+    <div class="world-scene" id="worldScene"><p class="map-note" id="mapNote">Loading the map…</p></div>
+    <input id="typer" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here">
+
+    <div class="overlay" id="menu">
+      <div class="panel">
+        <h2>Let's play!</h2>
+        <p id="gameDesc"></p>
+        <div class="label">Who's playing?</div>
+        <div class="players" id="players"></div>
+        <form class="add" id="addForm" autocomplete="off">
+          <input id="newName" type="text" maxlength="16" placeholder="New player name" aria-label="New player name" autocapitalize="words">
+          <button type="submit">Add</button>
+        </form>
+        <button type="button" class="remove" id="removeBtn" hidden></button>
+        <div class="label">Pick a game</div>
+        <div class="choices" id="games">
+          <button type="button" data-game="balloon" aria-pressed="true"><span class="em">🎈</span>1. Balloon Pop</button>
+          <button type="button" data-game="jungle" aria-pressed="false"><span class="em">🐘</span>2. Jungle Animals</button>
+          <button type="button" data-game="sea" aria-pressed="false"><span class="em">🐙</span>3. Sea World</button>
+          <button type="button" data-game="arctic" aria-pressed="false"><span class="em">🐻‍❄️</span>4. Arctic</button>
+          <button type="button" data-game="world" aria-pressed="false"><span class="em">🌍</span>5. World Map</button>
+        </div>
+        <div id="practiceBox">
+          <div class="label">What to practice</div>
+          <div class="choices" id="modes">
+            <button type="button" data-mode="home" aria-pressed="true">Home row</button>
+            <button type="button" data-mode="all" aria-pressed="false">All letters</button>
+            <button type="button" data-mode="words" aria-pressed="false">Short words</button>
+            <button type="button" data-mode="long" aria-pressed="false">Longer words</button>
+          </div>
+        </div>
+        <div class="label">Speed</div>
+        <div class="choices" id="speeds">
+          <button type="button" data-speed="slow" aria-pressed="true">Slow</button>
+          <button type="button" data-speed="medium" aria-pressed="false">Medium</button>
+          <button type="button" data-speed="fast" aria-pressed="false">Fast</button>
+          <button type="button" data-speed="super" aria-pressed="false">Super fast</button>
+        </div>
+        <button type="button" class="go" id="startBtn">Start</button>
+        <p id="bestLine" style="margin:10px 0 0" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div class="overlay" id="over" hidden>
+      <div class="panel">
+        <h2 id="overTitle">Great job!</h2>
+        <p id="overText"></p>
+        <button type="button" class="go" id="againBtn">Play again</button>
+        <button type="button" id="menuBtn" style="margin-top:10px;width:100%">Main menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kb" id="kb" aria-hidden="true"></div>
+  <p class="hint">The yellow key shows what to press next. Feel for the bumps on F and J to find home.</p>
+</div>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const stage = $('stage'), typer = $('typer'), kb = $('kb');
+const SETS = {home: 'asdfghjkl', all: 'abcdefghijklmnopqrstuvwxyz'};
+const WORDS = ['cat','dog','sun','hat','run','big','red','map','cup','fox','bed','pig','bus','egg','jam','kid','leg','mom','dad','top','win','yes','zip','box','van','web','hen','log','net','pen','rug','six','ten','up','go','me','we','see','the','and','you','can','fish','frog','cake','jump','play','star','tree','ball','book','moon','rain','duck'];
+const LONG = ['apple','happy','tiger','water','house','plant','smile','robot','pizza','green','zebra','sleep','grape','puppy','kitten','school','rocket','garden','orange','yellow','monkey','turtle','castle','friend','jungle','planet','dragon','summer','winter','pencil','rainbow','dinosaur','balloon','penguin'];
+// 100 animals: g = walks on the path, s = flies in the sky, w = swims in the river
+const ANIMALS = [
+  ['dog','🐕','g'],['cat','🐈','g'],['lion','🦁','g'],['tiger','🐅','g'],['elephant','🐘','g'],
+  ['monkey','🐒','g'],['giraffe','🦒','g'],['zebra','🦓','g'],['horse','🐎','g'],['cow','🐄','g'],
+  ['pig','🐖','g'],['sheep','🐑','g'],['goat','🐐','g'],['rabbit','🐇','g'],['mouse','🐁','g'],
+  ['bear','🐻','g'],['panda','🐼','g'],['fox','🦊','g'],['wolf','🐺','g'],['deer','🦌','g'],
+  ['camel','🐫','g'],['kangaroo','🦘','g'],['koala','🐨','g'],['rhino','🦏','g'],['gorilla','🦍','g'],
+  ['snake','🐍','g'],['frog','🐸','g'],['lizard','🦎','g'],['chicken','🐔','g'],['penguin','🐧','g'],
+  ['flamingo','🦩','g'],['snail','🐌','g'],['squirrel','🐿️','g'],['leopard','🐆','g'],
+  ['owl','🦉','s'],['eagle','🦅','s'],['parrot','🦜','s'],['bat','🦇','s'],['butterfly','🦋','s'],['bee','🐝','s'],
+  ['whale','🐋','w'],['dolphin','🐬','w'],['shark','🦈','w'],['octopus','🐙','w'],['fish','🐟','w'],
+  ['crab','🦀','w'],['crocodile','🐊','w'],['turtle','🐢','w'],['duck','🦆','w'],['hippo','🦛','w'],
+  ['rooster','🐓','g'],['turkey','🦃','g'],['llama','🦙','g'],['hedgehog','🦔','g'],['sloth','🦥','g'],
+  ['skunk','🦨','g'],['raccoon','🦝','g'],['badger','🦡','g'],['beaver','🦫','g'],['bison','🦬','g'],
+  ['ox','🐂','g'],['buffalo','🐃','g'],['ram','🐏','g'],['donkey','🫏','g'],['moose','🫎','g'],
+  ['orangutan','🦧','g'],['poodle','🐩','g'],['hamster','🐹','g'],['rat','🐀','g'],['ant','🐜','g'],
+  ['ladybug','🐞','g'],['spider','🕷️','g'],['scorpion','🦂','g'],['cricket','🦗','g'],['beetle','🪲','g'],
+  ['worm','🪱','g'],['peacock','🦚','g'],['chick','🐤','g'],['boar','🐗','g'],['caterpillar','🐛','g'],
+  ['dodo','🦤','g'],['mammoth','🦣','g'],['cockroach','🪳','g'],['dinosaur','🦕','g'],['puppy','🐶','g'],['kitten','🐱','g'],
+  ['dove','🕊️','s'],['mosquito','🦟','s'],['fly','🪰','s'],['bird','🐦','s'],['goose','🪿','s'],
+  ['swan','🦢','w'],['seal','🦭','w'],['otter','🦦','w'],['lobster','🦞','w'],['shrimp','🦐','w'],
+  ['squid','🦑','w'],['jellyfish','🪼','w'],['oyster','🦪','w'],['pufferfish','🐡','w']
+];
+// 150 sea creatures and plants: u = near the surface, m = middle, f = sea floor.
+// Optional 4th field is a colour filter so similar creatures look different.
+const SEA = [
+  ['dolphin','🐬','u'],['porpoise','🐬','u','hue-rotate(40deg)'],['flying fish','🐟','u','hue-rotate(180deg)'],['sailfish','🐟','u','hue-rotate(200deg)'],
+  ['marlin','🐟','u','hue-rotate(220deg)'],['swordfish','🐟','u','hue-rotate(160deg)'],['tuna','🐟','u'],['mackerel','🐟','u','hue-rotate(90deg)'],
+  ['sardine','🐟','u','grayscale(.7)'],['anchovy','🐟','u','hue-rotate(120deg)'],['herring','🐟','u','hue-rotate(30deg)'],['jellyfish','🪼','u'],
+  ['moon jelly','🪼','u','hue-rotate(60deg)'],['box jelly','🪼','u','hue-rotate(200deg)'],['sea nettle','🪼','u','hue-rotate(320deg)'],['sea turtle','🐢','u'],
+  ['penguin','🐧','u'],['plankton','🦠','u'],['krill','🦐','u','hue-rotate(300deg)'],['seal','🦭','u'],['sea lion','🦭','u','sepia(.6)'],
+  ['sea otter','🦦','u'],['salmon','🐟','u','hue-rotate(330deg)'],['barracuda','🐟','u','grayscale(.5)'],['kingfish','🐟','u','hue-rotate(250deg)'],
+  ['mullet','🐟','u','hue-rotate(70deg)'],['bonito','🐟','u','hue-rotate(140deg)'],['mahi mahi','🐟','u','hue-rotate(100deg) saturate(2)'],
+  ['whale','🐋','m'],['blue whale','🐋','m','saturate(1.8)'],['humpback','🐋','m','brightness(.75)'],['orca','🐋','m','grayscale(1) contrast(1.8)'],
+  ['beluga','🐳','m','grayscale(1) brightness(1.5)'],['narwhal','🐋','m','grayscale(.6)'],['sperm whale','🐋','m','grayscale(.8) brightness(.8)'],
+  ['manatee','🦭','m','sepia(.5)'],['walrus','🦭','m','sepia(1)'],['dugong','🦭','m','sepia(.8) brightness(1.2)'],
+  ['shark','🦈','m'],['hammerhead','🦈','m','hue-rotate(60deg)'],['great white','🦈','m','grayscale(.6) brightness(1.2)'],
+  ['tiger shark','🦈','m','sepia(.6)'],['whale shark','🦈','m','hue-rotate(200deg)'],['octopus','🐙','m'],['squid','🦑','m'],
+  ['giant squid','🦑','m','hue-rotate(320deg) saturate(1.5)'],['cuttlefish','🦑','m','hue-rotate(80deg)'],['nautilus','🐚','m'],
+  ['clownfish','🐠','m'],['angelfish','🐠','m','hue-rotate(90deg)'],['blue tang','🐠','m','hue-rotate(200deg)'],['parrotfish','🐠','m','hue-rotate(140deg)'],
+  ['lionfish','🐠','m','hue-rotate(330deg)'],['triggerfish','🐠','m','hue-rotate(60deg)'],['boxfish','🐠','m','hue-rotate(270deg)'],
+  ['butterflyfish','🐠','m','hue-rotate(40deg)'],['pufferfish','🐡','m'],['porcupinefish','🐡','m','hue-rotate(60deg)'],['sunfish','🐡','m','hue-rotate(200deg)'],
+  ['grouper','🐟','m','sepia(.7)'],['red snapper','🐟','m','hue-rotate(340deg) saturate(2)'],['cod','🐟','m','hue-rotate(100deg)'],
+  ['haddock','🐟','m','grayscale(.8)'],['pollock','🐟','m','hue-rotate(130deg)'],['sea bass','🐟','m','hue-rotate(160deg)'],
+  ['eel','🐍','m','hue-rotate(160deg)'],['moray','🐍','m','hue-rotate(60deg)'],['sea snake','🐍','m','hue-rotate(180deg)'],
+  ['sea dragon','🐉','m','hue-rotate(40deg)'],['tarpon','🐟','m','grayscale(.4) brightness(1.2)'],
+  ['crab','🦀','f'],['hermit crab','🦀','f','hue-rotate(40deg)'],['king crab','🦀','f','hue-rotate(300deg)'],['lobster','🦞','f'],
+  ['shrimp','🦐','f'],['prawn','🦐','f','hue-rotate(30deg)'],['starfish','⭐','f','hue-rotate(-25deg) saturate(2)'],['cockle','🐚','f','hue-rotate(80deg)'],
+  ['oyster','🦪','f'],['clam','🦪','f','hue-rotate(40deg)'],['mussel','🦪','f','grayscale(.5) brightness(.6)'],['scallop','🐚','f','hue-rotate(30deg)'],
+  ['conch','🐚','f','hue-rotate(-20deg)'],['sea snail','🐌','f'],['sea slug','🐌','f','hue-rotate(200deg)'],['coral','🪸','f'],
+  ['seaweed','🌿','f'],['kelp','🌿','f','hue-rotate(-30deg) brightness(.8)'],['seagrass','🌾','f','hue-rotate(60deg)'],['algae','🌱','f'],
+  ['sponge','🧽','f'],['anemone','🪸','f','hue-rotate(120deg)'],['flounder','🐟','f','sepia(.8)'],['halibut','🐟','f','hue-rotate(60deg)'],
+  ['sole','🐟','f','hue-rotate(80deg)'],['goby','🐟','f','hue-rotate(250deg)'],['blenny','🐟','f','hue-rotate(270deg)'],
+  ['anglerfish','🐡','f','brightness(.55)'],['sea cucumber','🥒','f'],['crocodile','🐊','f'],
+  // 50 sea plants, seaweeds and algae
+  ['giant kelp','🌿','f','hue-rotate(-40deg) brightness(.8)'],['bull kelp','🌿','f','hue-rotate(-60deg)'],['sea lettuce','🥬','f'],
+  ['sea grapes','🍇','f','hue-rotate(-170deg)'],['eelgrass','🌾','f','hue-rotate(50deg)'],['turtle grass','🌾','f','hue-rotate(70deg)'],
+  ['manatee grass','🌾','f','hue-rotate(90deg)'],['shoal grass','🌾','f','hue-rotate(40deg) brightness(.9)'],['widgeon grass','🌾','f','hue-rotate(60deg) saturate(1.5)'],
+  ['sargassum','🍂','u'],['bladderwrack','🍃','f','sepia(.6)'],['rockweed','🍃','f','sepia(.8)'],['knotted wrack','🍃','f','sepia(.5) brightness(.8)'],
+  ['dulse','🌱','f','hue-rotate(250deg)'],['nori','🌿','f','brightness(.45)'],['wakame','🌿','f','hue-rotate(20deg)'],['kombu','🌿','f','sepia(.7) brightness(.7)'],
+  ['hijiki','🌱','f','brightness(.4)'],['arame','🌿','f','sepia(.9)'],['irish moss','🌱','f','hue-rotate(230deg)'],['sea palm','🌴','f'],
+  ['sugar kelp','🌿','f','sepia(.4)'],['oarweed','🌿','f','sepia(.5) hue-rotate(-20deg)'],['sea moss','🌱','f','hue-rotate(300deg)'],
+  ['red algae','🌱','f','hue-rotate(240deg) saturate(2)'],['green algae','🌱','f','saturate(1.8)'],['brown algae','🌱','f','sepia(1)'],
+  ['coralline','🪸','f','hue-rotate(300deg)'],['halimeda','🍀','f'],['caulerpa','🌿','f','saturate(2)'],['sea spaghetti','🍝','f','hue-rotate(60deg)'],
+  ['samphire','🌱','f','hue-rotate(30deg)'],['mangrove','🌳','f'],['feather boa','🌿','f','hue-rotate(-20deg) saturate(1.4)'],
+  ['phytoplankton','🦠','u','hue-rotate(-80deg)'],['diatom','🦠','u','hue-rotate(150deg)'],['velvet horn','🌿','f','brightness(.6) saturate(1.5)'],
+  ['sea lace','🌿','f','hue-rotate(-10deg) brightness(1.2)'],['pepper dulse','🌱','f','hue-rotate(200deg)'],['gutweed','🌾','f','saturate(2) brightness(1.2)'],
+  ['laver','🍃','f','hue-rotate(260deg)'],['channel wrack','🍃','f','sepia(.3)'],['spiral wrack','🍃','f','sepia(.7) hue-rotate(10deg)'],
+  ['egg wrack','🍃','f','sepia(.9) brightness(.9)'],['thongweed','🌿','f','sepia(.6) brightness(.9)'],['wireweed','🌾','f','sepia(.8)'],
+  ['sea oak','🍂','f','hue-rotate(-20deg)'],['bubble algae','🫧','f','hue-rotate(-90deg) saturate(2)'],['turtle weed','🌱','f','brightness(1.2)'],
+  ['cordgrass','🌾','f']
+];
+// 100 Arctic words, real and from the stories: s = sky, g = snow, w = ice and water
+const ARCTIC = [
+  ['santa','🎅','s'],['sleigh','🛷','s'],['reindeer','🦌','s'],['rudolph','🦌','s','saturate(1.4)'],['snowflake','❄️','s'],
+  ['snowstorm','🌨️','s'],['blizzard','🌨️','s','brightness(.85)'],['wind','🌬️','s'],['aurora','🌌','s'],['northern lights','🌌','s','hue-rotate(90deg)'],
+  ['moon','🌙','s'],['north star','⭐','s'],['star','🌟','s'],['angel','👼','s'],['snowy owl','🦉','s','grayscale(1) brightness(1.4)'],
+  ['arctic tern','🕊️','s'],['snow goose','🪿','s','grayscale(1) brightness(1.3)'],['ptarmigan','🐦','s','grayscale(1) brightness(1.5)'],['raven','🐦','s','brightness(.25)'],
+  ['snow fairy','🧚','s'],['ice dragon','🐉','s','hue-rotate(180deg)'],['midnight sun','☀️','s'],['polar night','🌑','s'],['sleigh bells','🔔','s'],['letter','✉️','s'],
+  ['mrs claus','🤶','g'],['elf','🧝','g'],['present','🎁','g'],['gift','🎁','g','hue-rotate(120deg)'],['stocking','🧦','g'],
+  ['candy cane','🍬','g'],['gingerbread','🍪','g'],['milk','🥛','g'],['teddy bear','🧸','g'],['toy','🪀','g'],
+  ['snowman','⛄','g'],['christmas tree','🎄','g'],['pine tree','🌲','g'],['workshop','🏠','g'],['north pole','💈','g'],
+  ['mittens','🧤','g'],['scarf','🧣','g'],['parka','🧥','g'],['boots','👢','g'],['hot cocoa','☕','g'],
+  ['candle','🕯️','g'],['lantern','🏮','g'],['ribbon','🎀','g'],['snow globe','🔮','g','hue-rotate(160deg)'],['carol','🎶','g'],
+  ['polar express','🚂','g'],['yeti','🦍','g','grayscale(1) brightness(1.7)'],['ice castle','🏰','g','hue-rotate(180deg) brightness(1.2)'],['ice queen','👸','g'],['igloo','🛖','g','grayscale(1) brightness(1.6)'],
+  ['tent','⛺','g'],['campfire','🔥','g'],['skis','🎿','g'],['snowshoes','🥾','g'],['ice skates','⛸️','g'],
+  ['explorer','🧭','g'],['compass','🧭','g','hue-rotate(180deg)'],['map','🗺️','g'],['flag','🚩','g'],['polar bear','🐻‍❄️','g'],
+  ['arctic fox','🦊','g','grayscale(1) brightness(1.5)'],['arctic wolf','🐺','g','grayscale(1) brightness(1.4)'],['caribou','🦌','g','sepia(.6)'],['musk ox','🐂','g','brightness(.5)'],['arctic hare','🐇','g','grayscale(1) brightness(1.5)'],
+  ['lemming','🐹','g'],['ermine','🦦','g','grayscale(1) brightness(1.6)'],['moose','🫎','g'],['husky','🐕','g','grayscale(.8)'],['sled dog','🐕‍🦺','g'],
+  ['wolverine','🦡','g'],['sled','🛷','g','hue-rotate(200deg)'],['lichen','🌱','g','hue-rotate(60deg)'],['toy soldier','💂','g'],['chimney','🧱','g'],
+  ['iceberg','🧊','w'],['ice floe','🧊','w','brightness(1.2)'],['glacier','🏔️','w'],['icicle','🧊','w','hue-rotate(40deg)'],['walrus','🦭','w','sepia(1)'],
+  ['seal','🦭','w'],['harp seal','🦭','w','grayscale(1) brightness(1.6)'],['narwhal','🐋','w','grayscale(.6)'],['beluga','🐳','w','grayscale(1) brightness(1.5)'],['orca','🐋','w','grayscale(1) contrast(1.8)'],
+  ['bowhead','🐋','w','brightness(.5)'],['arctic char','🐟','w','hue-rotate(330deg)'],['arctic cod','🐟','w','hue-rotate(100deg)'],['krill','🦐','w','hue-rotate(300deg)'],['kayak','🛶','w'],
+  ['icebreaker','🚢','w'],['ice fishing','🎣','w'],['snow crab','🦀','w','grayscale(.3)'],['eider','🦆','w'],['loon','🦆','w','brightness(.4)']
+];
+// the 50 largest countries by area: [name to type, map code, latitude, longitude]
+const COUNTRIES = [
+  ['russia','RU',60,95],['canada','CA',57,-100],['china','CN',35,104],['united states','US',39,-98],['brazil','BR',-10,-52],
+  ['australia','AU',-25,134],['india','IN',22,79],['argentina','AR',-35,-65],['kazakhstan','KZ',48,67],['algeria','DZ',28,2],
+  ['dr congo','CD',-3,23],['saudi arabia','SA',24,45],['mexico','MX',23,-102],['indonesia','ID',-2,118],['sudan','SD',15,30],
+  ['libya','LY',27,17],['iran','IR',32,54],['mongolia','MN',47,104],['peru','PE',-9,-75],['chad','TD',15,19],
+  ['niger','NE',17,9],['angola','AO',-12,18],['mali','ML',17,-4],['south africa','ZA',-29,25],['colombia','CO',4,-73],
+  ['ethiopia','ET',9,40],['bolivia','BO',-17,-64],['mauritania','MR',20,-10],['egypt','EG',26,30],['tanzania','TZ',-6,35],
+  ['nigeria','NG',9,8],['venezuela','VE',7,-66],['pakistan','PK',30,70],['namibia','NA',-22,17],['mozambique','MZ',-18,35],
+  ['turkey','TR',39,35],['chile','CL',-30,-71],['zambia','ZM',-14,27],['myanmar','MM',21,96],['afghanistan','AF',34,66],
+  ['south sudan','SS',7,30],['france','FR',46,2],['somalia','SO',6,46],['central african republic','CF',7,21],['ukraine','UA',49,32],
+  ['madagascar','MG',-19,47],['botswana','BW',-22,24],['kenya','KE',0.5,38],['yemen','YE',15.5,48],['thailand','TH',15,101]
+];
+const LIFE = {slow: 11, medium: 8, fast: 6, super: 4.2}; // seconds a country name stays up
+// lane: vertical centre (% of stage), direction, how likely it is picked
+const LANES = {s: {y: .17, dir: -1, w: .25, cls: 'fly'}, g: {y: .52, dir: 1, w: .5, cls: ''}, w: {y: .83, dir: -1, w: .25, cls: 'swim'}};
+const SEA_LANES = {u: {y: .2, dir: 1, w: .3, cls: 'swim'}, m: {y: .5, dir: -1, w: .35, cls: 'swim'}, f: {y: .78, dir: 1, w: .35, cls: 'swim'}};
+const ARCTIC_LANES = {s: {y: .17, dir: 1, w: .3, cls: 'fly'}, g: {y: .52, dir: -1, w: .45, cls: ''}, w: {y: .83, dir: 1, w: .25, cls: 'swim'}};
+const THEMES = {jungle: {list: ANIMALS, lanes: LANES}, sea: {list: SEA, lanes: SEA_LANES}, arctic: {list: ARCTIC, lanes: ARCTIC_LANES}};
+const COLORS = ['#ff6b57','#ffb020','#36b37e','#3d8bff','#a463f2','#ff4fa3','#00b8c4'];
+const SPEEDS = {slow: 28, medium: 42, fast: 60, super: 82};
+const CROSS = {slow: 15, medium: 11, fast: 8, super: 5.5}; // seconds for an animal to cross
+const ROWS = ['qwertyuiop','asdfghjkl','zxcvbnm'];
+const GAME_SECONDS = 120;
+const DESC = {balloon: 'Type the letter or word on a balloon before it floats away.', jungle: "Type each animal's name before it leaves the jungle.", sea: 'Type the name of each sea creature or plant before it drifts away. No word shows up twice in a game. Some names have two words, so use the space bar!', arctic: 'Type each Arctic word before it slides away. Watch for Santa, polar bears and the northern lights!', world: 'A country name pops up in the right spot on the map. Type it before its timer runs out. Countries you find turn green!'};
+
+let game = 'balloon', mode = 'home', speedKey = 'slow';
+let S = null, raf = 0, last = 0, audio = null, nextId = 0;
+const isWords = () => game !== 'balloon' || mode === 'words' || mode === 'long';
+
+kb.innerHTML = ROWS.map((r, i) => `<div class="row">${[...r].map(ch =>
+  `<span class="k${i === 1 ? ' home' : ''}${'fj'.includes(ch) ? ' bump' : ''}" data-k="${ch}">${ch.toUpperCase()}</span>`).join('')}</div>`).join('')
+  + '<div class="row"><span class="k space" data-k=" ">space</span></div>';
+
+/* ---------- players (saved in this browser) ---------- */
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+let players = load('bpt-players', []), player = load('bpt-current', null);
+if (!players.includes(player)) player = players[0] || null;
+let removeArmed = false;
+
+const scoreKind = () => game === 'balloon' ? mode : game;
+function bestKey(){ return 'bpt-best-' + player + '-' + scoreKind(); }
+function getBest(){ return player ? +load(bestKey(), 0) : 0; }
+function setBest(v){ if (player) save(bestKey(), v); }
+function showBest(){
+  const line = $('bestLine'); line.classList.remove('need');
+  const b = getBest(); line.textContent = player && b ? `${player}'s best here: ${b}` : '';
+}
+function renderPlayers(){
+  $('players').innerHTML = players.map(n =>
+    `<button type="button" data-name="${esc(n)}" aria-pressed="${n === player}">${esc(n)}</button>`).join('');
+  const rb = $('removeBtn'); removeArmed = false; rb.classList.remove('sure');
+  rb.hidden = !player; rb.textContent = player ? `Remove ${player}` : '';
+  save('bpt-players', players); save('bpt-current', player); showBest();
+}
+$('players').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  player = b.dataset.name; renderPlayers();
+});
+$('addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('newName').value.trim().replace(/\s+/g, ' ');
+  if (!name) return;
+  const found = players.find(n => n.toLowerCase() === name.toLowerCase());
+  if (!found) players.push(name);
+  player = found || name; $('newName').value = ''; $('newName').blur(); renderPlayers();
+});
+$('removeBtn').addEventListener('click', () => {
+  const rb = $('removeBtn');
+  if (!removeArmed){ removeArmed = true; rb.classList.add('sure'); rb.textContent = `Tap again to remove ${player} and their scores`; return; }
+  ['home','all','words','long','jungle','sea','arctic','world'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
+  players = players.filter(n => n !== player); player = players[0] || null; renderPlayers();
+});
+
+/* ---------- menu choices ---------- */
+function pick(group, attr, cb){
+  $(group).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    $(group).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    cb(b.dataset[attr]); showBest();
+  });
+}
+function setGame(g){
+  game = g; save('bpt-game', g);
+  $('games').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.game === g));
+  $('practiceBox').hidden = g !== 'balloon';
+  $('gameDesc').textContent = DESC[g];
+  ['jungle','sea','arctic','world'].forEach(t => stage.classList.toggle(t, g === t));
+  showBest();
+}
+pick('games', 'game', setGame);
+pick('modes', 'mode', v => mode = v);
+pick('speeds', 'speed', v => speedKey = v);
+setGame(['jungle','sea','arctic','world'].includes(load('bpt-game', 'balloon')) ? load('bpt-game', 'balloon') : 'balloon');
+renderPlayers();
+
+/* ---------- world map ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+let mapSvg = null, mapPaths = {}, anchors = {};
+function buildMap(d){
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${d.width} ${d.height}`);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  for (const code in d.paths){
+    const el = document.createElementNS(NS, 'path');
+    el.setAttribute('d', d.paths[code].path); el.setAttribute('class', 'land');
+    svg.appendChild(el); mapPaths[code] = el;
+  }
+  $('worldScene').prepend(svg); mapSvg = svg; $('mapNote').hidden = true;
+}
+// if the map file can't load, draw a simple grid with a dot for each country so the game still works
+function buildFallback(){
+  const W = 1000, H = 500, svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  let g = '';
+  for (let lon = -150; lon <= 180; lon += 30){ const x = (lon + 170) / 360 * W; g += `M${x} 0V${H}`; }
+  for (let lat = -60; lat <= 80; lat += 20){ const y = (84 - lat) / 144 * H; g += `M0 ${y}H${W}`; }
+  svg.innerHTML = `<path class="grid" d="${g}"/>`;
+  for (const [, code, lat, lon] of COUNTRIES){
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', (lon + 170) / 360 * W); c.setAttribute('cy', (84 - lat) / 144 * H); c.setAttribute('r', 14);
+    c.setAttribute('class', 'land'); svg.appendChild(c); mapPaths[code] = c;
+  }
+  $('worldScene').prepend(svg); mapSvg = svg;
+  $('mapNote').textContent = "The map picture couldn't load, so countries show as dots.";
+}
+function loadMap(){
+  const srcs = ['https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js', 'https://unpkg.com/jsvectormap@1.5.3/dist/maps/world.js'];
+  window.jsVectorMap = {addMap: (name, d) => { if (!mapSvg && d && d.paths) buildMap(d); }};
+  const next = i => {
+    if (mapSvg) return;
+    if (i >= srcs.length){ buildFallback(); return; }
+    const sc = document.createElement('script'); sc.src = srcs[i];
+    sc.onload = () => { if (!mapSvg) next(i + 1); };
+    sc.onerror = () => next(i + 1);
+    document.head.appendChild(sc);
+  };
+  next(0);
+  setTimeout(() => { if (!mapSvg) buildFallback(); }, 12000);
+}
+loadMap();
+// find a spot well inside the country (its widest inland point), so labels sit on the mainland
+function anchorFor(code){
+  if (anchors[code]) return anchors[code];
+  const el = mapPaths[code], bb = el.getBBox(), N = 22, cw = bb.width / N, ch = bb.height / N;
+  const pt = mapSvg.createSVGPoint(), inside = [];
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++){
+    pt.x = bb.x + (i + .5) * cw; pt.y = bb.y + (j + .5) * ch;
+    let ok = false; try { ok = el.isPointInFill(pt); } catch(e){}
+    inside.push(ok);
+  }
+  let best = null, bestD = -1;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++){
+    if (!inside[i * N + j]) continue;
+    let d = Math.min((i + .5) * cw, (N - i - .5) * cw, (j + .5) * ch, (N - j - .5) * ch);
+    for (let a = 0; a < N; a++) for (let b = 0; b < N; b++)
+      if (!inside[a * N + b]) d = Math.min(d, Math.hypot((a - i) * cw, (b - j) * ch));
+    if (d > bestD){ bestD = d; best = {x: bb.x + (i + .5) * cw, y: bb.y + (j + .5) * ch}; }
+  }
+  return anchors[code] = best || {x: bb.x + bb.width / 2, y: bb.y + bb.height / 2};
+}
+
+/* ---------- sound ---------- */
+function beep(freq, dur, type){
+  if (!audio) return;
+  try {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type || 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(.18, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + dur);
+    o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime + dur);
+  } catch(e){}
+}
+
+/* ---------- game flow ---------- */
+function showMenu(on){ $('menu').hidden = !on; stage.classList.toggle('menu', on); }
+
+function start(){
+  if (!player){
+    const line = $('bestLine'); line.textContent = 'Add or pick a player first.'; line.classList.add('need');
+    $('newName').focus(); return;
+  }
+  try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch(e){ audio = null; }
+  clearThings();
+  S = {items: [], used: new Set(), score: 0, streak: 0, timeLeft: GAME_SECONDS, missed: 0, spawnIn: .3, pops: 0, running: true, paused: false, lock: null};
+  showMenu(false); $('over').hidden = true;
+  $('who').textContent = player; $('who').hidden = false;
+  $('pauseBtn').textContent = 'Pause'; $('pauseBtn').hidden = false; $('quitBtn').hidden = false;
+  document.body.classList.add('playing');
+  updateStats(); focusTyper();
+  last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+}
+function clearThings(){
+  stage.querySelectorAll('.balloon,.animal,.pin,.burst').forEach(n => n.remove());
+  Object.values(mapPaths).forEach(p => p.classList.remove('active', 'found'));
+  kb.querySelectorAll('.hot').forEach(k => k.classList.remove('hot'));
+}
+function focusTyper(){ try { typer.focus({preventScroll: true}); } catch(e){} }
+
+function spawnBalloon(){
+  const W = stage.clientWidth;
+  const list = mode === 'long' ? LONG : WORDS;
+  const text = isWords() ? list[Math.random() * list.length | 0] : SETS[mode][Math.random() * SETS[mode].length | 0];
+  if (S.items.some(b => b.text === text)) return;
+  const el = document.createElement('div');
+  el.className = 'balloon' + (isWords() ? ' word' : '') + (mode === 'long' ? ' long' : '');
+  el.style.setProperty('--c', COLORS[nextId % COLORS.length]);
+  const margin = mode === 'long' ? 90 : isWords() ? 70 : 50;
+  const b = {id: nextId++, text, typed: 0, x: margin + Math.random() * Math.max(10, W - margin * 2), y: -100, wob: Math.random() * 6, prog: 0, el};
+  stage.appendChild(el); S.items.push(b); renderText(b);
+}
+
+function spawnAnimal(){
+  // a lane is free when nothing in it is still near its starting side
+  const T = THEMES[game], lanes = T.lanes;
+  const free = Object.keys(lanes).filter(k => !S.items.some(a => a.lane === k && a.prog < .45));
+  if (!free.length) return;
+  let r = Math.random() * free.reduce((t, k) => t + lanes[k].w, 0), lane = free[0];
+  for (const k of free){ r -= lanes[k].w; if (r <= 0){ lane = k; break; } }
+  // skip anything that starts with the same letter as one already on screen, so the first key is never ambiguous
+  // Sea World rule: a word never shows up twice in the same game
+  const pool = T.list.filter(a => a[2] === lane && !(game === 'sea' && S.used.has(a[0])) && !S.items.some(x => x.text === a[0] || x.text[0] === a[0][0]));
+  if (!pool.length) return;
+  const [name, emoji, , filter] = pool[Math.random() * pool.length | 0];
+  S.used.add(name);
+  const L = lanes[lane], W = stage.clientWidth;
+  const el = document.createElement('div'); el.className = 'animal';
+  el.innerHTML = `<div class="tag"></div><div class="sprite ${L.cls}${L.dir > 0 ? ' flip' : ''}"><span${filter ? ` style="filter:${filter}"` : ''}>${emoji}</span></div>`;
+  const a = {id: nextId++, text: name, typed: 0, lane, dir: L.dir, x: L.dir > 0 ? -70 : W + 70, prog: 0, el};
+  stage.appendChild(el); S.items.push(a); renderText(a); placeAnimal(a);
+}
+function spawnCountry(){
+  if (!mapSvg) return;
+  const ok = c => mapPaths[c[1]] && !S.items.some(x => x.text === c[0] || x.text[0] === c[0][0]);
+  let pool = COUNTRIES.filter(c => ok(c) && !S.used.has(c[0]));
+  if (!pool.length){ S.used = new Set(S.items.map(x => x.text)); pool = COUNTRIES.filter(ok); } // every country done: start a new round
+  // keep labels apart so they don't cover each other
+  pool = pool.filter(c => S.items.every(x => { const a = anchorFor(c[1]); return Math.hypot(a.x - x.ax, a.y - x.ay) > 90; }));
+  if (!pool.length) return;
+  const [name, code] = pool[Math.random() * pool.length | 0];
+  S.used.add(name);
+  const a = anchorFor(code), el = document.createElement('div');
+  el.className = 'pin'; el.innerHTML = '<div class="tag"></div><div class="bar"><i></i></div>';
+  const life = LIFE[speedKey] * (1 + Math.max(0, name.length - 6) * .06);
+  const c = {id: nextId++, text: name, typed: 0, code, ax: a.x, ay: a.y, age: 0, life, prog: 0, el};
+  mapPaths[code].classList.add('active');
+  stage.appendChild(el); S.items.push(c); renderText(c); placePin(c);
+}
+function placePin(c){
+  const m = mapSvg.getScreenCTM(); if (!m) return;
+  const pt = mapSvg.createSVGPoint(); pt.x = c.ax; pt.y = c.ay;
+  const p = pt.matrixTransform(m), r = stage.getBoundingClientRect();
+  const x = Math.min(Math.max(p.x - r.left, 70), r.width - 70), y = Math.max(p.y - r.top, 60);
+  c.el.style.left = x + 'px'; c.el.style.top = y + 'px';
+  c.el.style.setProperty('--t', 'translate(-50%,-100%)');
+  c.el.lastChild.firstChild.style.width = Math.max(0, 100 - c.prog * 100) + '%';
+}
+function placeAnimal(a){
+  const H = stage.clientHeight, y = THEMES[game].lanes[a.lane].y * H - 46;
+  const t = `translate(${a.x}px,${y}px)`;
+  a.el.style.setProperty('--t', t); a.el.style.transform = t;
+}
+
+function renderText(b){
+  const html = `<span class="done">${b.text.slice(0, b.typed)}</span>${b.text.slice(b.typed)}`;
+  if (b.el.classList.contains('animal') || b.el.classList.contains('pin')) b.el.firstChild.innerHTML = html;
+  else b.el.innerHTML = isWords() ? `<span>${html}</span>` : b.text.toUpperCase();
+  b.el.classList.toggle('locked', !!S && S.lock === b);
+}
+
+function tick(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (S.running && !S.paused){
+    S.timeLeft -= dt; updateTime();
+    if (S.timeLeft <= 0){ gameOver(); return; }
+    const boost = 1 + Math.min(.8, S.pops * .012);
+    S.spawnIn -= dt;
+    if (game === 'world'){
+      if (S.spawnIn <= 0 && S.items.length < 2){ spawnCountry(); S.spawnIn = 1.2; }
+      for (const c of [...S.items]){
+        c.age += dt * boost; c.prog = c.age / c.life; placePin(c);
+        if (c.prog >= 1) escape(c);
+      }
+    } else if (game !== 'balloon'){
+      if (S.spawnIn <= 0 && S.items.length < 3){ spawnAnimal(); S.spawnIn = Math.max(1.2, 2.6 - S.pops * .02); }
+      const W = stage.clientWidth, span = W + 140;
+      for (const a of [...S.items]){
+        const secs = CROSS[speedKey] * (1 + Math.max(0, a.text.length - 4) * .08);
+        a.x += a.dir * span / secs * boost * dt;
+        a.prog = a.dir > 0 ? (a.x + 70) / span : (W + 70 - a.x) / span;
+        placeAnimal(a);
+        if (a.prog >= 1) escape(a);
+      }
+    } else {
+      const H = stage.clientHeight;
+      const v = SPEEDS[speedKey] * (mode === 'long' ? .75 : 1) * boost;
+      const maxOn = mode === 'long' ? 3 : isWords() ? 4 : 5;
+      if (S.spawnIn <= 0 && S.items.length < maxOn){ spawnBalloon(); S.spawnIn = Math.max(.9, (mode === 'long' ? 4.5 : isWords() ? 3.4 : 2.2) - S.pops * .02); }
+      for (const b of [...S.items]){
+        b.y += v * dt; b.wob += dt * 2; b.prog = b.y / (H + 10);
+        b.el.style.transform = `translate(${b.x + Math.sin(b.wob) * 6}px,${-b.y}px)`;
+        if (b.y > H + 10) escape(b);
+      }
+    }
+    updateKeyHint();
+  }
+  if (S.running) raf = requestAnimationFrame(tick);
+}
+
+function remove(b){ S.items = S.items.filter(x => x !== b); if (S.lock === b) S.lock = null; if (b.code && mapPaths[b.code]) mapPaths[b.code].classList.remove('active'); }
+
+function escape(b){
+  remove(b); b.el.remove();
+  S.missed++; S.streak = 0; beep(180, .3, 'sine'); updateStats();
+}
+
+function pop(b){
+  remove(b);
+  const pts = isWords() ? b.text.length : 1;
+  S.pops++; S.streak++; S.score += pts + (S.streak % 10 === 0 ? 5 : 0);
+  const r = b.el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+  const t = document.createElement('div'); t.className = 'burst';
+  t.textContent = S.streak % 10 === 0 ? `+${pts} +5 streak!` : `+${pts}`;
+  t.style.left = (r.left - sr.left + r.width / 2 - 14) + 'px'; t.style.top = (r.top - sr.top + 6) + 'px';
+  stage.appendChild(t); setTimeout(() => t.remove(), 700);
+  if (b.code && mapPaths[b.code]) mapPaths[b.code].classList.add('found');
+  b.el.classList.add(game === 'balloon' ? 'pop' : 'caught'); setTimeout(() => b.el.remove(), 460);
+  beep(520 + Math.min(S.streak, 12) * 40, .15); updateStats();
+}
+
+function oops(){
+  S.streak = 0; updateStats(); beep(140, .12, 'square');
+  stage.classList.remove('oops'); void stage.offsetWidth; stage.classList.add('oops');
+}
+
+function flashKey(ch){
+  const k = kb.querySelector(`[data-k="${ch}"]`); if (!k) return;
+  k.classList.add('hit'); setTimeout(() => k.classList.remove('hit'), 150);
+}
+
+function handleChar(ch){
+  ch = ch.toLowerCase();
+  if (!/^[a-z ]$/.test(ch) || !S || !S.running || S.paused) return;
+  // a stray space only matters in the middle of a two-word name
+  if (ch === ' ' && !(S.lock && S.lock.text[S.lock.typed] === ' ')) return;
+  flashKey(ch);
+  // the one closest to leaving is the most urgent
+  const byUrgency = [...S.items].sort((a, b) => b.prog - a.prog);
+  if (!isWords()){
+    const b = byUrgency.find(x => x.text === ch);
+    return b ? pop(b) : oops();
+  }
+  let b = S.lock;
+  if (!b){
+    b = byUrgency.find(x => x.text[0] === ch);
+    if (!b) return oops();
+    S.lock = b;
+  }
+  if (b.text[b.typed] === ch){
+    b.typed++;
+    if (b.typed === b.text.length) pop(b); else { renderText(b); beep(400, .05); }
+  } else oops();
+  S.items.forEach(renderText);
+}
+
+function updateKeyHint(){
+  kb.querySelectorAll('.hot').forEach(k => k.classList.remove('hot'));
+  let target = null;
+  if (S.lock) target = S.lock.text[S.lock.typed];
+  else {
+    const top = [...S.items].sort((a, b) => b.prog - a.prog)[0];
+    if (top) target = top.text[top.typed];
+  }
+  if (target){ const k = kb.querySelector(`[data-k="${target}"]`); if (k) k.classList.add('hot'); }
+}
+
+function updateStats(){
+  $('score').textContent = S.score; $('streak').textContent = S.streak;
+  updateTime();
+}
+function updateTime(){
+  const t = Math.max(0, Math.ceil(S.timeLeft));
+  $('time').textContent = `${t / 60 | 0}:${String(t % 60).padStart(2, '0')}`;
+  $('timer').classList.toggle('low', t <= 10);
+}
+
+function endPlay(){
+  $('pauseBtn').hidden = true; $('quitBtn').hidden = true;
+  document.body.classList.remove('playing'); try { typer.blur(); } catch(e){} fitStage();
+}
+
+function gameOver(){
+  S.running = false; cancelAnimationFrame(raf);
+  const best = getBest(), isBest = S.score > best;
+  if (isBest) setBest(S.score);
+  const what = game === 'balloon' ? 'popped' : game === 'world' ? 'found' : 'named', thing = {balloon: 'balloon', jungle: 'animal', sea: 'sea word', arctic: 'Arctic word', world: 'country'}[game];
+  S.timeLeft = 0; updateTime(); beep(660, .4);
+  $('overTitle').textContent = isBest ? `Time's up! New best, ${player}!` : `Time's up! Great job, ${player}!`;
+  $('overText').textContent = `You scored ${S.score} and ${what} ${S.pops} ${S.pops === 1 ? thing : thing === 'country' ? 'countries' : thing + 's'} in 2 minutes.` + (!isBest && best ? ` Best is ${best}.` : '');
+  $('over').hidden = false; updateKeyHint(); endPlay();
+}
+
+function quit(){
+  if (S){ S.running = false; S.items = []; S.lock = null; }
+  cancelAnimationFrame(raf); clearThings();
+  $('over').hidden = true; showMenu(true); $('who').hidden = true;
+  endPlay(); renderPlayers();
+}
+
+function togglePause(){
+  if (!S || !S.running) return;
+  S.paused = !S.paused; $('pauseBtn').textContent = S.paused ? 'Resume' : 'Pause';
+  if (!S.paused){ last = performance.now(); focusTyper(); }
+}
+
+// phones: when the on-screen keyboard opens, shrink the stage to fit the space above it
+function fitStage(){
+  const vv = window.visualViewport;
+  const kbOpen = vv && document.activeElement === typer && vv.height < window.innerHeight * .85;
+  if (kbOpen){
+    const top = stage.getBoundingClientRect().top + window.scrollY;
+    stage.style.height = Math.max(240, vv.height - 70) + 'px';
+    window.scrollTo(0, Math.max(0, top - 60));
+  } else stage.style.height = '';
+}
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fitStage);
+typer.addEventListener('focus', () => setTimeout(fitStage, 300));
+typer.addEventListener('blur', () => setTimeout(fitStage, 100));
+
+$('startBtn').addEventListener('click', start);
+$('againBtn').addEventListener('click', start);
+$('menuBtn').addEventListener('click', quit);
+$('pauseBtn').addEventListener('click', togglePause);
+$('quitBtn').addEventListener('click', quit);
+stage.addEventListener('pointerdown', e => { if (S && S.running && !e.target.closest('button')) focusTyper(); });
+
+document.addEventListener('keydown', e => {
+  if (!S || !S.running) return;
+  if (e.key === 'Escape'){ togglePause(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key && e.key.length === 1 && /[a-z ]/i.test(e.key)){ e.preventDefault(); handleChar(e.key); }
+});
+// phones: some keyboards don't report keys on keydown, so read what lands in the hidden box
+typer.addEventListener('input', () => { for (const ch of typer.value) handleChar(ch); typer.value = ''; });
+}
+</script>
+</body>
+</html>
