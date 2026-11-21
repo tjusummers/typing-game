@@ -39,7 +39,7 @@ h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0;font-weight:700;text
 .stage.menu{height:auto!important;min-height:340px}
 .stage.menu #menu{position:relative;min-height:340px}
 .sky-scene,.jungle-scene{position:absolute;inset:0;pointer-events:none}
-.stage:is(.jungle,.sea,.arctic,.world) .sky-scene,.stage:not(.world) .world-scene,.stage:not(.jungle) .jungle-scene,.stage:not(.sea) .sea-scene,.stage:not(.arctic) .arctic-scene{display:none}
+.stage:is(.jungle,.sea,.arctic,.world,.usa,.finger) .sky-scene,.stage:not(.finger) .finger-scene,.stage:not(.world) #worldScene,.stage:not(.usa) #usScene,.stage:not(.jungle) .jungle-scene,.stage:not(.sea) .sea-scene,.stage:not(.arctic) .arctic-scene{display:none}
 .sea-scene,.arctic-scene{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .sky-scene::after{content:"";position:absolute;inset:auto -10% -60px -10%;height:120px;border-radius:50%;background:radial-gradient(ellipse at 50% 0,var(--grass),var(--grass2))}
 .cloud{position:absolute;background:light-dark(#fff,#3a4b9a);opacity:.85;border-radius:40px;height:26px}
@@ -82,12 +82,18 @@ h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0;font-weight:700;text
 @keyframes fall{to{transform:translateY(50%)}}
 
 /* world map */
-.stage.world{background:light-dark(#9fd3f2,#0e2a4d)}
+.stage.world,.stage.usa{background:light-dark(#9fd3f2,#0e2a4d)}
 .world-scene{position:absolute;inset:0;overflow:hidden}
 .world-scene svg{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px)}
 .world-scene .land{fill:light-dark(#f3e3b5,#3d5a6e);stroke:light-dark(#fff,#0e2a4d);stroke-width:.5;transition:fill .3s}
 .world-scene .land.active{fill:#ffd34d}
 .world-scene .land.found{fill:light-dark(#6cc77a,#3c9a5a)}
+.world-scene .land.hint{fill:light-dark(#ffeaa0,#5d6d48)}
+.world-scene .dot{fill:#17324d;stroke:#fff;stroke-width:1.5}
+.world-scene .dot.found{fill:light-dark(#1f8a3a,#7de39a)}
+.pin.city .tag{background:#17324d;color:#fff}
+.pin.city .done{opacity:.5}
+.pin.city::after{border-top-color:#17324d}
 .world-scene .grid{stroke:light-dark(rgba(255,255,255,.5),rgba(255,255,255,.12));stroke-width:1;fill:none}
 .map-note{position:absolute;left:12px;bottom:8px;font-size:13px;color:var(--muted);background:var(--card);border-radius:8px;padding:2px 8px}
 .pin{position:absolute;left:0;top:0;z-index:3;transform:translate(-50%,-100%);display:grid;justify-items:center;pointer-events:none}
@@ -97,6 +103,42 @@ h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0;font-weight:700;text
 .pin::after{content:"";width:0;height:0;border:7px solid transparent;border-top-color:#fff;margin-top:-1px}
 .pin.locked .tag{outline:3px solid var(--accent);outline-offset:2px}
 .pin.caught{animation:caught .45s ease-out forwards}
+
+/* game 0: finger trainer */
+.stage.finger{background:linear-gradient(180deg,light-dark(#fff4d6,#2a2350),light-dark(#ffe6b0,#1d1a3f))}
+.stage.finger{height:auto!important;min-height:340px}
+.stage.finger .finger-scene{position:relative;inset:auto;min-height:340px}
+.stage.finger~.kb,.stage.finger~.hint{display:none}
+.finger-scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;padding:12px 10px 10px}
+.fs-top{width:min(560px,100%);display:flex;align-items:center;gap:10px;font-weight:600}
+.fs-prog{flex:1;height:12px;border-radius:6px;background:light-dark(rgba(0,0,0,.08),rgba(255,255,255,.12));overflow:hidden}
+.fs-prog i{display:block;height:100%;width:0;background:var(--grass);border-radius:6px;transition:width .2s}
+.fs-target{display:grid;justify-items:center;gap:2px}
+.fs-letter{width:clamp(64px,13vh,100px);height:clamp(64px,13vh,100px);border-radius:22px;display:grid;place-items:center;font-size:clamp(40px,9vh,66px);font-weight:700;color:#fff;background:var(--fc,#ffb020);box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.fs-letter.bump{animation:pulse .25s}
+@keyframes pulse{50%{transform:scale(1.12)}}
+.fs-say{font-weight:600;font-size:18px;text-align:center}
+.fs-say b{color:var(--fc)}
+.fs-kb{display:grid;gap:5px;justify-items:center}
+.fs-kb .row{display:flex;gap:5px}
+.fs-kb .k{--fc:#999;width:clamp(26px,7.4vw,44px);height:clamp(30px,6vh,44px);background:color-mix(in srgb,var(--fc) 26%,var(--key));font-size:clamp(14px,3vw,18px)}
+.fs-kb .k.space{width:clamp(140px,38vw,240px)}
+.fs-kb .k.target{background:var(--fc);color:#fff;transform:translateY(-3px) scale(1.1);box-shadow:0 0 0 3px #fff,0 4px 10px rgba(0,0,0,.25)}
+.fs-kb .k.bad{background:#ff4d3a;color:#fff}
+.fs-kb .k.good{background:var(--grass);color:#fff}
+.hands{height:clamp(70px,24%,150px);width:auto;max-width:96%;flex:none}
+.hands .finger{opacity:.4;stroke:light-dark(#fff,#1d1a3f);stroke-width:3;transition:opacity .15s,transform .15s}
+.hands .finger.on{opacity:1}
+.hands .palm{fill:light-dark(#e9eef6,#38407a)}
+.stage.compact .hands{display:none}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:var(--fc);vertical-align:-1px}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.levels button{display:grid;gap:0;text-align:start;padding:6px 10px;font-size:15px;line-height:1.25}
+.levels button small{font-weight:400;color:var(--muted);font-size:13px}
+.levels button[aria-pressed=true] small{color:#5a4500}
+.levels button:disabled{opacity:.45;cursor:not-allowed}
+.stars{color:#f5a400;letter-spacing:1px}
 
 /* balloons */
 .balloon{position:absolute;bottom:0;left:0;width:78px;height:92px;margin-left:-39px;z-index:2;
@@ -222,7 +264,14 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
       <div class="floe" style="left:76%;bottom:17%;width:60px"></div>
       <div class="snowfall"></div>
     </div>
-    <div class="world-scene" id="worldScene"><p class="map-note" id="mapNote">Loading the map…</p></div>
+    <div class="finger-scene" id="fingerScene">
+      <div class="fs-top"><span id="fsLevel">Level 1</span><div class="fs-prog"><i id="fsBar"></i></div><span id="fsCount">0/20</span></div>
+      <div class="fs-target"><div class="fs-letter" id="fsLetter">F</div><div class="fs-say" id="fsSay"></div></div>
+      <div class="fs-kb" id="fsKb"></div>
+      <svg class="hands" id="hands" viewBox="0 0 520 160" aria-hidden="true"></svg>
+    </div>
+    <div class="world-scene" id="worldScene"><p class="map-note">Loading the map…</p></div>
+    <div class="world-scene" id="usScene"><p class="map-note">Loading the map…</p></div>
     <input id="typer" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here">
 
     <div class="overlay" id="menu">
@@ -238,11 +287,13 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
         <button type="button" class="remove" id="removeBtn" hidden></button>
         <div class="label">Pick a game</div>
         <div class="choices" id="games">
+          <button type="button" data-game="finger" aria-pressed="false"><span class="em">🖐️</span>0. Finger Start</button>
           <button type="button" data-game="balloon" aria-pressed="true"><span class="em">🎈</span>1. Balloon Pop</button>
           <button type="button" data-game="jungle" aria-pressed="false"><span class="em">🐘</span>2. Jungle Animals</button>
           <button type="button" data-game="sea" aria-pressed="false"><span class="em">🐙</span>3. Sea World</button>
           <button type="button" data-game="arctic" aria-pressed="false"><span class="em">🐻‍❄️</span>4. Arctic</button>
           <button type="button" data-game="world" aria-pressed="false"><span class="em">🌍</span>5. World Map</button>
+          <button type="button" data-game="usa" aria-pressed="false"><span class="em">🗽</span>6. USA Map</button>
         </div>
         <div id="practiceBox">
           <div class="label">What to practice</div>
@@ -253,7 +304,19 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
             <button type="button" data-mode="long" aria-pressed="false">Longer words</button>
           </div>
         </div>
-        <div class="label">Speed</div>
+        <div id="usBox" hidden>
+          <div class="label">What to show</div>
+          <div class="choices" id="usModes">
+            <button type="button" data-us="states" aria-pressed="true">States</button>
+            <button type="button" data-us="cities" aria-pressed="false">Cities</button>
+            <button type="button" data-us="both" aria-pressed="false">Both</button>
+          </div>
+        </div>
+        <div id="levelBox" hidden>
+          <div class="label">Level</div>
+          <div class="levels" id="levels"></div>
+        </div>
+        <div class="label" id="speedLabel">Speed</div>
         <div class="choices" id="speeds">
           <button type="button" data-speed="slow" aria-pressed="true">Slow</button>
           <button type="button" data-speed="medium" aria-pressed="false">Medium</button>
@@ -269,6 +332,7 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
       <div class="panel">
         <h2 id="overTitle">Great job!</h2>
         <p id="overText"></p>
+        <button type="button" class="go" id="nextBtn" hidden>Next level</button>
         <button type="button" class="go" id="againBtn">Play again</button>
         <button type="button" id="menuBtn" style="margin-top:10px;width:100%">Main menu</button>
       </div>
@@ -394,6 +458,36 @@ const COUNTRIES = [
   ['south sudan','SS',7,30],['france','FR',46,2],['somalia','SO',6,46],['central african republic','CF',7,21],['ukraine','UA',49,32],
   ['madagascar','MG',-19,47],['botswana','BW',-22,24],['kenya','KE',0.5,38],['yemen','YE',15.5,48],['thailand','TH',15,101]
 ];
+// 50 states: [name, map code, latitude, longitude]
+const STATES = [
+  ['alabama','AL',32.8,-86.8],['alaska','AK',64,-150],['arizona','AZ',34.3,-111.7],['arkansas','AR',34.9,-92.4],['california','CA',37.2,-119.5],
+  ['colorado','CO',39,-105.5],['connecticut','CT',41.6,-72.7],['delaware','DE',39,-75.5],['florida','FL',28.6,-82.4],['georgia','GA',32.7,-83.4],
+  ['hawaii','HI',20.8,-156.3],['idaho','ID',44.4,-114.6],['illinois','IL',40,-89.2],['indiana','IN',39.9,-86.3],['iowa','IA',42,-93.5],
+  ['kansas','KS',38.5,-98.4],['kentucky','KY',37.5,-85.3],['louisiana','LA',31,-92],['maine','ME',45.4,-69.2],['maryland','MD',39,-76.8],
+  ['massachusetts','MA',42.3,-71.8],['michigan','MI',44.3,-85.4],['minnesota','MN',46.3,-94.3],['mississippi','MS',32.7,-89.7],['missouri','MO',38.4,-92.5],
+  ['montana','MT',47,-109.6],['nebraska','NE',41.5,-99.8],['nevada','NV',39.3,-116.6],['new hampshire','NH',43.7,-71.6],['new jersey','NJ',40.2,-74.7],
+  ['new mexico','NM',34.4,-106.1],['new york','NY',42.9,-75.5],['north carolina','NC',35.6,-79.4],['north dakota','ND',47.5,-100.5],['ohio','OH',40.3,-82.8],
+  ['oklahoma','OK',35.6,-97.5],['oregon','OR',43.9,-120.6],['pennsylvania','PA',40.9,-77.8],['rhode island','RI',41.7,-71.5],['south carolina','SC',33.9,-80.9],
+  ['south dakota','SD',44.4,-100.2],['tennessee','TN',35.9,-86.4],['texas','TX',31.5,-99.3],['utah','UT',39.3,-111.7],['vermont','VT',44.1,-72.7],
+  ['virginia','VA',37.5,-78.8],['washington','WA',47.4,-120.5],['west virginia','WV',38.6,-80.6],['wisconsin','WI',44.6,-89.9],['wyoming','WY',43,-107.6]
+];
+// big cities: the largest city in every state, plus more for the biggest states: [name, state code, latitude, longitude]
+const CITIES = [
+  ['huntsville','AL',34.73,-86.59],['anchorage','AK',61.22,-149.9],['phoenix','AZ',33.45,-112.07],['tucson','AZ',32.22,-110.97],['little rock','AR',34.75,-92.29],
+  ['los angeles','CA',34.05,-118.24],['san francisco','CA',37.77,-122.42],['san diego','CA',32.72,-117.16],['denver','CO',39.74,-104.99],['colorado springs','CO',38.83,-104.82],
+  ['bridgeport','CT',41.19,-73.2],['wilmington','DE',39.74,-75.55],['jacksonville','FL',30.33,-81.66],['miami','FL',25.76,-80.19],['orlando','FL',28.54,-81.38],
+  ['atlanta','GA',33.75,-84.39],['savannah','GA',32.08,-81.09],['honolulu','HI',21.31,-157.86],['boise','ID',43.62,-116.2],['chicago','IL',41.88,-87.63],
+  ['indianapolis','IN',39.77,-86.16],['des moines','IA',41.59,-93.62],['wichita','KS',37.69,-97.34],['louisville','KY',38.25,-85.76],['new orleans','LA',29.95,-90.07],
+  ['baton rouge','LA',30.45,-91.15],['portland','ME',43.66,-70.26],['baltimore','MD',39.29,-76.61],['boston','MA',42.36,-71.06],['detroit','MI',42.33,-83.05],
+  ['grand rapids','MI',42.96,-85.67],['minneapolis','MN',44.98,-93.27],['jackson','MS',32.3,-90.18],['kansas city','MO',39.1,-94.58],['st louis','MO',38.63,-90.2],
+  ['billings','MT',45.78,-108.5],['omaha','NE',41.26,-95.93],['las vegas','NV',36.17,-115.14],['reno','NV',39.53,-119.81],['manchester','NH',42.99,-71.46],
+  ['newark','NJ',40.74,-74.17],['albuquerque','NM',35.08,-106.65],['new york city','NY',40.71,-74.0],['buffalo','NY',42.89,-78.88],['charlotte','NC',35.23,-80.84],
+  ['raleigh','NC',35.78,-78.64],['fargo','ND',46.88,-96.79],['columbus','OH',39.96,-83.0],['cleveland','OH',41.5,-81.69],['oklahoma city','OK',35.47,-97.52],
+  ['portland','OR',45.52,-122.68],['philadelphia','PA',39.95,-75.17],['pittsburgh','PA',40.44,-80.0],['providence','RI',41.82,-71.41],['charleston','SC',32.78,-79.93],
+  ['sioux falls','SD',43.54,-96.73],['nashville','TN',36.16,-86.78],['memphis','TN',35.15,-90.05],['houston','TX',29.76,-95.37],['dallas','TX',32.78,-96.8],
+  ['austin','TX',30.27,-97.74],['san antonio','TX',29.42,-98.49],['salt lake city','UT',40.76,-111.89],['burlington','VT',44.48,-73.21],['virginia beach','VA',36.85,-75.98],
+  ['seattle','WA',47.61,-122.33],['spokane','WA',47.66,-117.43],['charleston','WV',38.35,-81.63],['milwaukee','WI',43.04,-87.91],['cheyenne','WY',41.14,-104.82]
+];
 const LIFE = {slow: 11, medium: 8, fast: 6, super: 4.2}; // seconds a country name stays up
 // lane: vertical centre (% of stage), direction, how likely it is picked
 const LANES = {s: {y: .17, dir: -1, w: .25, cls: 'fly'}, g: {y: .52, dir: 1, w: .5, cls: ''}, w: {y: .83, dir: -1, w: .25, cls: 'swim'}};
@@ -405,9 +499,9 @@ const SPEEDS = {slow: 28, medium: 42, fast: 60, super: 82};
 const CROSS = {slow: 15, medium: 11, fast: 8, super: 5.5}; // seconds for an animal to cross
 const ROWS = ['qwertyuiop','asdfghjkl','zxcvbnm'];
 const GAME_SECONDS = 120;
-const DESC = {balloon: 'Type the letter or word on a balloon before it floats away.', jungle: "Type each animal's name before it leaves the jungle.", sea: 'Type the name of each sea creature or plant before it drifts away. No word shows up twice in a game. Some names have two words, so use the space bar!', arctic: 'Type each Arctic word before it slides away. Watch for Santa, polar bears and the northern lights!', world: 'A country name pops up in the right spot on the map. Type it before its timer runs out. Countries you find turn green!'};
+const DESC = {finger: 'For beginners: type one letter at a time with the right finger. The colors show which finger presses which key. Finish a level to unlock the next one.', balloon: 'Type the letter or word on a balloon before it floats away.', jungle: "Type each animal's name before it leaves the jungle.", sea: 'Type the name of each sea creature or plant before it drifts away. No word shows up twice in a game. Some names have two words, so use the space bar!', arctic: 'Type each Arctic word before it slides away. Watch for Santa, polar bears and the northern lights!', world: 'A country name pops up in the right spot on the map. Type it before its timer runs out. Countries you find turn green!', usa: 'A state or city name pops up in the right spot on the US map. Type it before its timer runs out. Pick states, cities or both.'};
 
-let game = 'balloon', mode = 'home', speedKey = 'slow';
+let game = 'balloon', mode = 'home', speedKey = 'slow', usMode = 'states';
 let S = null, raf = 0, last = 0, audio = null, nextId = 0;
 const isWords = () => game !== 'balloon' || mode === 'words' || mode === 'long';
 
@@ -423,12 +517,17 @@ let players = load('bpt-players', []), player = load('bpt-current', null);
 if (!players.includes(player)) player = players[0] || null;
 let removeArmed = false;
 
-const scoreKind = () => game === 'balloon' ? mode : game;
+const scoreKind = () => game === 'balloon' ? mode : game === 'usa' ? 'usa-' + usMode : game;
 function bestKey(){ return 'bpt-best-' + player + '-' + scoreKind(); }
 function getBest(){ return player ? +load(bestKey(), 0) : 0; }
 function setBest(v){ if (player) save(bestKey(), v); }
 function showBest(){
   const line = $('bestLine'); line.classList.remove('need');
+  if (game === 'finger'){
+    const done = Object.values(fStars()).filter(n => n >= 1).length;
+    line.textContent = player ? `${player} has finished ${done} of ${FLEVELS.length} levels.` : '';
+    renderLevels(); return;
+  }
   const b = getBest(); line.textContent = player && b ? `${player}'s best here: ${b}` : '';
 }
 function renderPlayers(){
@@ -453,8 +552,47 @@ $('addForm').addEventListener('submit', e => {
 $('removeBtn').addEventListener('click', () => {
   const rb = $('removeBtn');
   if (!removeArmed){ removeArmed = true; rb.classList.add('sure'); rb.textContent = `Tap again to remove ${player} and their scores`; return; }
-  ['home','all','words','long','jungle','sea','arctic','world'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
+  ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
+  try { localStorage.removeItem(fKey()); } catch(e){}
   players = players.filter(n => n !== player); player = players[0] || null; renderPlayers();
+});
+
+/* ---------- game 0: finger trainer data ---------- */
+const FINGERS = {
+  lp: ['left pinky', '#a463f2'], lr: ['left ring', '#3d8bff'], lm: ['left middle', '#16a874'], li: ['left index', '#ff8a00'],
+  ri: ['right index', '#ff8a00'], rm: ['right middle', '#16a874'], rr: ['right ring', '#3d8bff'], rp: ['right pinky', '#a463f2'], th: ['thumb', '#8a98a8']
+};
+const KEY_FINGER = {};
+[['lp','qaz'],['lr','wsx'],['lm','edc'],['li','rtfgvb'],['ri','yuhjnm'],['rm','ik'],['rr','ol'],['rp','p'],['th',' ']].forEach(([f, ks]) => { for (const k of ks) KEY_FINGER[k] = f; });
+// each level adds a few keys; "new" keys show up more often
+const FLEVELS = [
+  {name: 'The bumps', keys: 'fj', fresh: 'fj', tip: 'Rest your pointer fingers on the bumps on F and J.'},
+  {name: 'Middle fingers', keys: 'fjdk', fresh: 'dk', tip: 'Middle fingers go right next to the bumps.'},
+  {name: 'Home row', keys: 'asdfjkl', fresh: 'asl', tip: 'All your fingers rest on the home row.'},
+  {name: 'Reach in', keys: 'asdfghjkl', fresh: 'gh', tip: 'Pointer fingers slide in to reach G and H.'},
+  {name: 'Top row', keys: 'asdfghjklertyui', fresh: 'ertyui', tip: 'Reach up, then come back home.'},
+  {name: 'Top corners', keys: 'asdfghjklqwertyuiop', fresh: 'qwop', tip: 'Ring and pinky fingers reach up.'},
+  {name: 'Bottom row', keys: 'abcdefghijklmnopqrstuvwxyz', fresh: 'zxcvbnm', tip: 'Curl your fingers down to the bottom row.'},
+  {name: 'Every letter', keys: 'abcdefghijklmnopqrstuvwxyz', fresh: '', tip: 'You know them all. Keep your eyes on the screen!'}
+];
+const PER_LEVEL = 20;
+let fLevel = 0;
+const fKey = () => 'bpt-finger-' + player;
+const fStars = () => player ? load(fKey(), {}) : {};
+const fUnlocked = () => { const st = fStars(); let u = 0; while (u < FLEVELS.length - 1 && st[u] >= 1) u++; return u; };
+const starText = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+function renderLevels(){
+  const st = fStars(), u = fUnlocked();
+  if (fLevel > u) fLevel = u;
+  $('levels').innerHTML = FLEVELS.map((l, i) => {
+    const locked = i > u;
+    return `<button type="button" data-lv="${i}" aria-pressed="${i === fLevel}" ${locked ? 'disabled' : ''}>${i + 1}. ${l.name}` +
+      `<small>${locked ? 'Locked' : st[i] ? `<span class="stars">${starText(st[i])}</span>` : 'Not done yet'}</small></button>`;
+  }).join('');
+}
+$('levels').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  fLevel = +b.dataset.lv; renderLevels();
 });
 
 /* ---------- menu choices ---------- */
@@ -469,66 +607,93 @@ function setGame(g){
   game = g; save('bpt-game', g);
   $('games').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.game === g));
   $('practiceBox').hidden = g !== 'balloon';
+  $('levelBox').hidden = g !== 'finger'; $('speedLabel').hidden = $('speeds').hidden = g === 'finger';
   $('gameDesc').textContent = DESC[g];
-  ['jungle','sea','arctic','world'].forEach(t => stage.classList.toggle(t, g === t));
+  ['jungle','sea','arctic','world','usa','finger'].forEach(t => stage.classList.toggle(t, g === t));
+  $('usBox').hidden = g !== 'usa';
+  if (MAPS[g]) loadMap(MAPS[g]);
   showBest();
 }
 pick('games', 'game', setGame);
 pick('modes', 'mode', v => mode = v);
 pick('speeds', 'speed', v => speedKey = v);
-setGame(['jungle','sea','arctic','world'].includes(load('bpt-game', 'balloon')) ? load('bpt-game', 'balloon') : 'balloon');
-renderPlayers();
+pick('usModes', 'us', v => usMode = v);
 
-/* ---------- world map ---------- */
+/* ---------- maps (world and USA) ---------- */
+// map shapes come from the jsvectormap map files; each map loads the first time its game is picked
 const NS = 'http://www.w3.org/2000/svg';
-let mapSvg = null, mapPaths = {}, anchors = {};
-function buildMap(d){
+const MAPS = {
+  world: {scene: 'worldScene', srcs: ['https://cdnjs.cloudflare.com/ajax/libs/jsvectormap/1.5.0/maps/world.js', 'https://cdn.jsdelivr.net/npm/jsvectormap@1.5.0/dist/maps/world.js'], key: 'world', places: () => COUNTRIES, noun: 'countries'},
+  usa: {scene: 'usScene', srcs: ['https://cdn.jsdelivr.net/npm/jsvectormap@1.4.2/dist/maps/us-aea-en.js', 'https://cdnjs.cloudflare.com/ajax/libs/jsvectormap/1.4.2/maps/us-aea-en.js'], key: 'us', places: () => STATES, noun: 'states', prefix: 'US-'}
+};
+for (const k in MAPS) Object.assign(MAPS[k], {svg: null, paths: {}, anchors: {}, data: null, loading: false});
+// the map files call either jsVectorMap.addMap(...) or jsVectorMap.prototype.addMap(...), so catch both
+const addMap = (name, d) => {
+  const M = String(name).indexOf('us') === 0 ? MAPS.usa : MAPS.world;
+  if (!M.svg && d && d.paths) buildMap(M, d);
+};
+function JsVectorMapStub(){}
+JsVectorMapStub.addMap = addMap; JsVectorMapStub.prototype.addMap = addMap;
+window.jsVectorMap = JsVectorMapStub;
+function newSvg(M, w, h){
   const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${d.width} ${d.height}`);
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  for (const code in d.paths){
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  M.dots = document.createElementNS(NS, 'g');
+  return svg;
+}
+function buildMap(M, d){
+  const svg = newSvg(M, d.width, d.height);
+  for (const id in d.paths){
+    const code = M.prefix ? id.replace(M.prefix, '') : id;
     const el = document.createElementNS(NS, 'path');
-    el.setAttribute('d', d.paths[code].path); el.setAttribute('class', 'land');
-    svg.appendChild(el); mapPaths[code] = el;
+    el.setAttribute('d', d.paths[id].path); el.setAttribute('class', 'land');
+    svg.appendChild(el); M.paths[code] = el;
   }
-  $('worldScene').prepend(svg); mapSvg = svg; $('mapNote').hidden = true;
+  svg.appendChild(M.dots);
+  M.data = d; finishMap(M, svg, '');
 }
-// if the map file can't load, draw a simple grid with a dot for each country so the game still works
-function buildFallback(){
-  const W = 1000, H = 500, svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+function finishMap(M, svg, note){
+  const sc = $(M.scene); sc.prepend(svg); M.svg = svg;
+  const n = sc.querySelector('.map-note'); n.hidden = !note; n.textContent = note;
+}
+// if the map file can't load, draw a simple grid with a dot for each place so the game still works
+function buildFallback(M){
+  if (M.svg) return;
+  const us = M === MAPS.usa, W = 1000, H = us ? 620 : 500, svg = newSvg(M, W, H);
+  M.project = us
+    ? (lat, lon) => lat > 50 ? {x: 60 + (lon + 170) * 6, y: 470 + (66 - lat) * 9} : lon < -150 ? {x: 300 + (lon + 160.5) * 30, y: 520 + (22.5 - lat) * 30} : {x: (lon + 125) / 59 * W, y: (50 - lat) / 26 * 420 + 20}
+    : (lat, lon) => ({x: (lon + 170) / 360 * W, y: (84 - lat) / 144 * H});
   let g = '';
-  for (let lon = -150; lon <= 180; lon += 30){ const x = (lon + 170) / 360 * W; g += `M${x} 0V${H}`; }
-  for (let lat = -60; lat <= 80; lat += 20){ const y = (84 - lat) / 144 * H; g += `M0 ${y}H${W}`; }
+  for (let i = 1; i < 10; i++){ g += `M${i * W / 10} 0V${H}M0 ${i * H / 10}H${W}`; }
   svg.innerHTML = `<path class="grid" d="${g}"/>`;
-  for (const [, code, lat, lon] of COUNTRIES){
-    const c = document.createElementNS(NS, 'circle');
-    c.setAttribute('cx', (lon + 170) / 360 * W); c.setAttribute('cy', (84 - lat) / 144 * H); c.setAttribute('r', 14);
-    c.setAttribute('class', 'land'); svg.appendChild(c); mapPaths[code] = c;
+  for (const [, code, lat, lon] of M.places()){
+    const p = M.project(lat, lon), c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', us ? 16 : 14);
+    c.setAttribute('class', 'land'); svg.appendChild(c); M.paths[code] = c;
   }
-  $('worldScene').prepend(svg); mapSvg = svg;
-  $('mapNote').textContent = "The map picture couldn't load, so countries show as dots.";
+  svg.appendChild(M.dots);
+  finishMap(M, svg, `The map picture couldn't load, so ${M.noun} show as circles.`);
 }
-function loadMap(){
-  const srcs = ['https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js', 'https://unpkg.com/jsvectormap@1.5.3/dist/maps/world.js'];
-  window.jsVectorMap = {addMap: (name, d) => { if (!mapSvg && d && d.paths) buildMap(d); }};
+function loadMap(M){
+  if (M.svg || M.loading) return;
+  M.loading = true;
+  const srcs = M.srcs;
   const next = i => {
-    if (mapSvg) return;
-    if (i >= srcs.length){ buildFallback(); return; }
+    if (M.svg) return;
+    if (i >= srcs.length){ buildFallback(M); return; }
     const sc = document.createElement('script'); sc.src = srcs[i];
-    sc.onload = () => { if (!mapSvg) next(i + 1); };
+    sc.onload = () => { if (!M.svg) next(i + 1); };
     sc.onerror = () => next(i + 1);
     document.head.appendChild(sc);
   };
   next(0);
-  setTimeout(() => { if (!mapSvg) buildFallback(); }, 12000);
+  setTimeout(() => buildFallback(M), 12000);
 }
-loadMap();
-// find a spot well inside the country (its widest inland point), so labels sit on the mainland
-function anchorFor(code){
-  if (anchors[code]) return anchors[code];
-  const el = mapPaths[code], bb = el.getBBox(), N = 22, cw = bb.width / N, ch = bb.height / N;
-  const pt = mapSvg.createSVGPoint(), inside = [];
+// find a spot well inside a place (its widest inland point), so labels sit on the mainland
+function anchorFor(M, code){
+  if (M.anchors[code]) return M.anchors[code];
+  const el = M.paths[code], bb = el.getBBox(), N = 22, cw = bb.width / N, ch = bb.height / N;
+  const pt = M.svg.createSVGPoint(), inside = [];
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++){
     pt.x = bb.x + (i + .5) * cw; pt.y = bb.y + (j + .5) * ch;
     let ok = false; try { ok = el.isPointInFill(pt); } catch(e){}
@@ -542,8 +707,45 @@ function anchorFor(code){
       if (!inside[a * N + b]) d = Math.min(d, Math.hypot((a - i) * cw, (b - j) * ch));
     if (d > bestD){ bestD = d; best = {x: bb.x + (i + .5) * cw, y: bb.y + (j + .5) * ch}; }
   }
-  return anchors[code] = best || {x: bb.x + bb.width / 2, y: bb.y + bb.height / 2};
+  return M.anchors[code] = best || {x: bb.x + bb.width / 2, y: bb.y + bb.height / 2};
 }
+// turn latitude/longitude into a spot on the map, the same way the map file was drawn (Albers projection for the US)
+function projectLatLon(M, lat, lon){
+  if (M.project) return M.project(lat, lon);
+  const d = M.data; if (!d || !d.projection || !d.insets) return null;
+  const R = 6381372, rd = Math.PI / 180, c = d.projection.centralMeridian || 0;
+  let p;
+  if (d.projection.type === 'aea'){
+    const f1 = 29.5 * rd, f2 = 45.5 * rd, n = (Math.sin(f1) + Math.sin(f2)) / 2, C = Math.cos(f1) ** 2 + 2 * n * Math.sin(f1);
+    const th = n * (lon - c) * rd, ro = Math.sqrt(C - 2 * n * Math.sin(lat * rd)) / n, ro0 = Math.sqrt(C) / n;
+    p = {x: ro * Math.sin(th) * R, y: -(ro0 - ro * Math.cos(th)) * R};
+  } else return null;
+  for (const ins of d.insets){
+    const [a, b] = ins.bbox;
+    if (p.x >= a.x && p.x <= b.x && p.y >= a.y && p.y <= b.y)
+      return {x: (p.x - a.x) / (b.x - a.x) * ins.width + ins.left, y: (p.y - a.y) / (b.y - a.y) * ins.height + ins.top};
+  }
+  return null;
+}
+// a city's spot, checked against its state's outline; if the check fails, fall back to the middle of the state
+function cityPoint(M, city){
+  const key = 'city:' + city[0] + city[1];
+  if (M.anchors[key]) return M.anchors[key];
+  const el = M.paths[city[1]], p = projectLatLon(M, city[2], city[3]);
+  let ok = false;
+  if (p && el){
+    const pt = M.svg.createSVGPoint(); pt.x = p.x; pt.y = p.y;
+    try {
+      ok = el.isPointInFill(pt);
+      if (!ok){ el.style.strokeWidth = '14px'; ok = el.isPointInStroke(pt); el.style.strokeWidth = ''; } // coastal cities can sit just off the outline
+    } catch(e){}
+  }
+  return M.anchors[key] = ok ? p : anchorFor(M, city[1]);
+}
+
+// start on the last game played
+setGame(['jungle','sea','arctic','world','usa','finger'].includes(load('bpt-game', 'balloon')) ? load('bpt-game', 'balloon') : 'balloon');
+renderPlayers();
 
 /* ---------- sound ---------- */
 function beep(freq, dur, type){
@@ -572,12 +774,101 @@ function start(){
   $('who').textContent = player; $('who').hidden = false;
   $('pauseBtn').textContent = 'Pause'; $('pauseBtn').hidden = false; $('quitBtn').hidden = false;
   document.body.classList.add('playing');
+  $('timer').hidden = game === 'finger'; $('pauseBtn').hidden = game === 'finger';
   updateStats(); focusTyper();
-  last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+  cancelAnimationFrame(raf);
+  if (game === 'finger'){ fingerBegin(); return; }
+  last = performance.now(); raf = requestAnimationFrame(tick);
+}
+
+/* ---------- game 0: finger trainer ---------- */
+function drawHands(){
+  // one hand drawn from shapes; the right hand is its mirror image
+  const fingers = [['p', 30, 52, 30, 62], ['r', 66, 30, 32, 84], ['m', 104, 18, 34, 96], ['i', 144, 30, 32, 84]];
+  const hand = side => {
+    const f = side === 'l' ? fingers : fingers;
+    return `<rect class="palm" x="28" y="92" width="150" height="62" rx="26"/>` +
+      f.map(([n, x, y, w, h]) => `<rect class="finger" data-f="${side}${n}" x="${x}" y="${y}" width="${w}" height="${h + 24}" rx="${w / 2}" fill="${FINGERS[side + n][1]}"/>`).join('') +
+      `<rect class="finger" data-f="th" x="170" y="96" width="28" height="64" rx="14" fill="${FINGERS.th[1]}" transform="rotate(-48 184 128)"/>`;
+  };
+  $('hands').innerHTML = `<g>${hand('l')}</g><g transform="translate(520 0) scale(-1 1)">${hand('r')}</g>`;
+}
+function drawFingerKb(){
+  const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+  $('fsKb').innerHTML = rows.map((r, i) => `<div class="row">${[...r].map(ch =>
+    `<span class="k${'fj'.includes(ch) ? ' bump' : ''}" data-k="${ch}" style="--fc:${FINGERS[KEY_FINGER[ch]][1]}">${ch.toUpperCase()}</span>`).join('')}</div>`).join('') +
+    `<div class="row"><span class="k space" data-k=" " style="--fc:${FINGERS.th[1]}">space</span></div>`;
+}
+drawHands(); drawFingerKb();
+
+function fingerBegin(){
+  const L = FLEVELS[fLevel];
+  S.f = {i: 0, first: 0, missedThis: false, last: [], level: fLevel};
+  $('fsLevel').textContent = `Level ${fLevel + 1}`;
+  $('fsSay').innerHTML = '';
+  // show the tip first, then the first letter
+  nextLetter(L.tip);
+}
+function pickLetter(){
+  const L = FLEVELS[fLevel], f = S.f;
+  let ch, tries = 0;
+  do {
+    const src = L.fresh && Math.random() < .5 ? L.fresh : L.keys;
+    ch = src[Math.random() * src.length | 0];
+  } while (tries++ < 20 && f.last.length >= 2 && f.last[f.last.length - 1] === ch && f.last[f.last.length - 2] === ch);
+  f.last.push(ch); return ch;
+}
+function nextLetter(tip){
+  const f = S.f;
+  f.target = pickLetter(); f.missedThis = false;
+  const fin = FINGERS[KEY_FINGER[f.target]];
+  const big = $('fsLetter');
+  big.textContent = f.target.toUpperCase(); big.style.setProperty('--fc', fin[1]);
+  big.classList.remove('bump'); void big.offsetWidth; big.classList.add('bump');
+  const say = $('fsSay'); say.style.setProperty('--fc', fin[1]);
+  say.innerHTML = tip ? esc(tip) : `Use your <b>${fin[0]}</b> finger`;
+  $('fsKb').querySelectorAll('.k').forEach(k => k.classList.toggle('target', k.dataset.k === f.target));
+  $('hands').querySelectorAll('.finger').forEach(el => el.classList.toggle('on', el.dataset.f === KEY_FINGER[f.target]));
+  $('fsBar').style.width = (f.i / PER_LEVEL * 100) + '%';
+  $('fsCount').textContent = `${f.i}/${PER_LEVEL}`;
+}
+function flashFs(ch, cls){
+  const k = $('fsKb').querySelector(`[data-k="${ch}"]`); if (!k) return;
+  k.classList.add(cls); setTimeout(() => k.classList.remove(cls), 220);
+}
+function fingerKey(ch){
+  const f = S.f;
+  if (ch === f.target){
+    flashFs(ch, 'good');
+    if (!f.missedThis){ f.first++; S.streak++; } 
+    S.score++; f.i++; beep(520 + Math.min(S.streak, 12) * 40, .12); updateStats();
+    if (f.i >= PER_LEVEL) return fingerDone();
+    nextLetter();
+  } else {
+    flashFs(ch, 'bad'); f.missedThis = true; S.streak = 0; updateStats(); beep(140, .12, 'square');
+    const want = FINGERS[KEY_FINGER[f.target]][0], used = KEY_FINGER[ch] ? FINGERS[KEY_FINGER[ch]][0] : '';
+    $('fsSay').innerHTML = `Oops, that was ${ch === ' ' ? 'space' : ch.toUpperCase()}. Find <b>${f.target.toUpperCase()}</b> with your <b>${want}</b> finger`;
+    stage.classList.remove('oops'); void stage.offsetWidth; stage.classList.add('oops');
+  }
+}
+function fingerDone(){
+  S.running = false;
+  const f = S.f, pct = f.first / PER_LEVEL;
+  const stars = pct >= .95 ? 3 : pct >= .85 ? 2 : pct >= .7 ? 1 : 0;
+  const st = fStars();
+  if (stars > (st[fLevel] || 0)){ st[fLevel] = stars; save(fKey(), st); }
+  $('fsBar').style.width = '100%'; $('fsCount').textContent = `${PER_LEVEL}/${PER_LEVEL}`;
+  beep(660, .4);
+  const last = fLevel === FLEVELS.length - 1;
+  $('overTitle').textContent = stars ? `Level ${fLevel + 1} done, ${player}! ${starText(stars)}` : `Nice try, ${player}!`;
+  $('overText').textContent = `${f.first} of ${PER_LEVEL} letters right on the first try.` +
+    (stars ? (last ? ' You finished every level!' : ' The next level is unlocked.') : ' Get 14 or more right the first time to unlock the next level.');
+  $('nextBtn').hidden = !stars || last;
+  $('over').hidden = false; endPlay();
 }
 function clearThings(){
   stage.querySelectorAll('.balloon,.animal,.pin,.burst').forEach(n => n.remove());
-  Object.values(mapPaths).forEach(p => p.classList.remove('active', 'found'));
+  for (const k in MAPS){ Object.values(MAPS[k].paths).forEach(p => p.classList.remove('active', 'found', 'hint')); if (MAPS[k].dots) MAPS[k].dots.innerHTML = ''; }
   kb.querySelectorAll('.hot').forEach(k => k.classList.remove('hot'));
 }
 function focusTyper(){ try { typer.focus({preventScroll: true}); } catch(e){} }
@@ -614,26 +905,35 @@ function spawnAnimal(){
   const a = {id: nextId++, text: name, typed: 0, lane, dir: L.dir, x: L.dir > 0 ? -70 : W + 70, prog: 0, el};
   stage.appendChild(el); S.items.push(a); renderText(a); placeAnimal(a);
 }
-function spawnCountry(){
-  if (!mapSvg) return;
-  const ok = c => mapPaths[c[1]] && !S.items.some(x => x.text === c[0] || x.text[0] === c[0][0]);
-  let pool = COUNTRIES.filter(c => ok(c) && !S.used.has(c[0]));
-  if (!pool.length){ S.used = new Set(S.items.map(x => x.text)); pool = COUNTRIES.filter(ok); } // every country done: start a new round
+function spawnPlace(){
+  const M = MAPS[game]; if (!M.svg) return;
+  let list;
+  if (game === 'world') list = COUNTRIES.map(c => ({name: c[0], code: c[1], key: c[0]}));
+  else {
+    list = [];
+    if (usMode !== 'cities') STATES.forEach(c => list.push({name: c[0], code: c[1], key: c[0]}));
+    if (usMode !== 'states') CITIES.forEach(c => list.push({name: c[0], code: c[1], key: c[0] + c[1], city: c}));
+  }
+  const ok = c => M.paths[c.code] && !S.items.some(x => x.text === c.name || x.text[0] === c.name[0]);
+  let pool = list.filter(c => ok(c) && !S.used.has(c.key));
+  if (!pool.length){ S.used = new Set(S.items.map(x => x.key)); pool = list.filter(ok); } // all done: start a new round
+  const where = c => c.city ? cityPoint(M, c.city) : anchorFor(M, c.code);
   // keep labels apart so they don't cover each other
-  pool = pool.filter(c => S.items.every(x => { const a = anchorFor(c[1]); return Math.hypot(a.x - x.ax, a.y - x.ay) > 90; }));
+  pool = pool.filter(c => S.items.every(x => { const a = where(c); return Math.hypot(a.x - x.ax, a.y - x.ay) > 90; }));
   if (!pool.length) return;
-  const [name, code] = pool[Math.random() * pool.length | 0];
-  S.used.add(name);
-  const a = anchorFor(code), el = document.createElement('div');
-  el.className = 'pin'; el.innerHTML = '<div class="tag"></div><div class="bar"><i></i></div>';
-  const life = LIFE[speedKey] * (1 + Math.max(0, name.length - 6) * .06);
-  const c = {id: nextId++, text: name, typed: 0, code, ax: a.x, ay: a.y, age: 0, life, prog: 0, el};
-  mapPaths[code].classList.add('active');
+  const pick = pool[Math.random() * pool.length | 0];
+  S.used.add(pick.key);
+  const a = where(pick), el = document.createElement('div');
+  el.className = 'pin' + (pick.city ? ' city' : ''); el.innerHTML = '<div class="tag"></div><div class="bar"><i></i></div>';
+  const life = LIFE[speedKey] * (1 + Math.max(0, pick.name.length - 6) * .06);
+  const c = {id: nextId++, text: pick.name, key: pick.key, typed: 0, code: pick.code, city: !!pick.city, ax: a.x, ay: a.y, age: 0, life, prog: 0, el};
+  M.paths[pick.code].classList.add(pick.city ? 'hint' : 'active');
   stage.appendChild(el); S.items.push(c); renderText(c); placePin(c);
 }
 function placePin(c){
-  const m = mapSvg.getScreenCTM(); if (!m) return;
-  const pt = mapSvg.createSVGPoint(); pt.x = c.ax; pt.y = c.ay;
+  const M = MAPS[game]; if (!M.svg) return;
+  const m = M.svg.getScreenCTM(); if (!m) return;
+  const pt = M.svg.createSVGPoint(); pt.x = c.ax; pt.y = c.ay;
   const p = pt.matrixTransform(m), r = stage.getBoundingClientRect();
   const x = Math.min(Math.max(p.x - r.left, 70), r.width - 70), y = Math.max(p.y - r.top, 60);
   c.el.style.left = x + 'px'; c.el.style.top = y + 'px';
@@ -660,8 +960,8 @@ function tick(now){
     if (S.timeLeft <= 0){ gameOver(); return; }
     const boost = 1 + Math.min(.8, S.pops * .012);
     S.spawnIn -= dt;
-    if (game === 'world'){
-      if (S.spawnIn <= 0 && S.items.length < 2){ spawnCountry(); S.spawnIn = 1.2; }
+    if (MAPS[game]){
+      if (S.spawnIn <= 0 && S.items.length < 2){ spawnPlace(); S.spawnIn = 1.2; }
       for (const c of [...S.items]){
         c.age += dt * boost; c.prog = c.age / c.life; placePin(c);
         if (c.prog >= 1) escape(c);
@@ -692,7 +992,7 @@ function tick(now){
   if (S.running) raf = requestAnimationFrame(tick);
 }
 
-function remove(b){ S.items = S.items.filter(x => x !== b); if (S.lock === b) S.lock = null; if (b.code && mapPaths[b.code]) mapPaths[b.code].classList.remove('active'); }
+function remove(b){ S.items = S.items.filter(x => x !== b); if (S.lock === b) S.lock = null; const P = MAPS[game] && b.code && MAPS[game].paths[b.code]; if (P) P.classList.remove(b.city ? 'hint' : 'active'); }
 
 function escape(b){
   remove(b); b.el.remove();
@@ -708,7 +1008,11 @@ function pop(b){
   t.textContent = S.streak % 10 === 0 ? `+${pts} +5 streak!` : `+${pts}`;
   t.style.left = (r.left - sr.left + r.width / 2 - 14) + 'px'; t.style.top = (r.top - sr.top + 6) + 'px';
   stage.appendChild(t); setTimeout(() => t.remove(), 700);
-  if (b.code && mapPaths[b.code]) mapPaths[b.code].classList.add('found');
+  const M = MAPS[game];
+  if (M && b.code && M.paths[b.code]){
+    if (!b.city) M.paths[b.code].classList.add('found');
+    else { const dot = document.createElementNS(NS, 'circle'); dot.setAttribute('cx', b.ax); dot.setAttribute('cy', b.ay); dot.setAttribute('r', 5); dot.setAttribute('class', 'dot found'); M.dots.appendChild(dot); }
+  }
   b.el.classList.add(game === 'balloon' ? 'pop' : 'caught'); setTimeout(() => b.el.remove(), 460);
   beep(520 + Math.min(S.streak, 12) * 40, .15); updateStats();
 }
@@ -726,6 +1030,7 @@ function flashKey(ch){
 function handleChar(ch){
   ch = ch.toLowerCase();
   if (!/^[a-z ]$/.test(ch) || !S || !S.running || S.paused) return;
+  if (game === 'finger') return fingerKey(ch);
   // a stray space only matters in the middle of a two-word name
   if (ch === ' ' && !(S.lock && S.lock.text[S.lock.typed] === ' ')) return;
   flashKey(ch);
@@ -778,22 +1083,23 @@ function gameOver(){
   S.running = false; cancelAnimationFrame(raf);
   const best = getBest(), isBest = S.score > best;
   if (isBest) setBest(S.score);
-  const what = game === 'balloon' ? 'popped' : game === 'world' ? 'found' : 'named', thing = {balloon: 'balloon', jungle: 'animal', sea: 'sea word', arctic: 'Arctic word', world: 'country'}[game];
+  const what = game === 'balloon' ? 'popped' : MAPS[game] ? 'found' : 'named', thing = {balloon: 'balloon', jungle: 'animal', sea: 'sea word', arctic: 'Arctic word', world: 'country', usa: 'place'}[game];
   S.timeLeft = 0; updateTime(); beep(660, .4);
   $('overTitle').textContent = isBest ? `Time's up! New best, ${player}!` : `Time's up! Great job, ${player}!`;
   $('overText').textContent = `You scored ${S.score} and ${what} ${S.pops} ${S.pops === 1 ? thing : thing === 'country' ? 'countries' : thing + 's'} in 2 minutes.` + (!isBest && best ? ` Best is ${best}.` : '');
+  $('nextBtn').hidden = true;
   $('over').hidden = false; updateKeyHint(); endPlay();
 }
 
 function quit(){
   if (S){ S.running = false; S.items = []; S.lock = null; }
   cancelAnimationFrame(raf); clearThings();
-  $('over').hidden = true; showMenu(true); $('who').hidden = true;
+  $('over').hidden = true; showMenu(true); $('who').hidden = true; $('timer').hidden = false;
   endPlay(); renderPlayers();
 }
 
 function togglePause(){
-  if (!S || !S.running) return;
+  if (!S || !S.running || game === 'finger') return;
   S.paused = !S.paused; $('pauseBtn').textContent = S.paused ? 'Resume' : 'Pause';
   if (!S.paused){ last = performance.now(); focusTyper(); }
 }
@@ -807,6 +1113,7 @@ function fitStage(){
     stage.style.height = Math.max(240, vv.height - 70) + 'px';
     window.scrollTo(0, Math.max(0, top - 60));
   } else stage.style.height = '';
+  stage.classList.toggle('compact', !!kbOpen);
 }
 if (window.visualViewport) window.visualViewport.addEventListener('resize', fitStage);
 typer.addEventListener('focus', () => setTimeout(fitStage, 300));
@@ -814,6 +1121,7 @@ typer.addEventListener('blur', () => setTimeout(fitStage, 100));
 
 $('startBtn').addEventListener('click', start);
 $('againBtn').addEventListener('click', start);
+$('nextBtn').addEventListener('click', () => { fLevel = Math.min(fLevel + 1, fUnlocked()); start(); });
 $('menuBtn').addEventListener('click', quit);
 $('pauseBtn').addEventListener('click', togglePause);
 $('quitBtn').addEventListener('click', quit);
