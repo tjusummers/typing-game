@@ -15,7 +15,7 @@ The World and USA maps load their outlines from the [jsvectormap](https://github
 
 ## Features
 - Multiple players with saved best scores and Finger Start progress (stored in the browser)
-- Four speeds: Slow, Medium, Fast, Super fast
+- Games 1–6 have 5 levels by speed: Super slow, Slow, Medium, Fast, Super fast. Level 1 is always open; catch at least 8 of every 10 in a round to pass and unlock the next level
 - 2-minute rounds with score, streak bonuses and sound effects
 - On-screen keyboard guide that highlights the next key
 - Works on desktop and phones/tablets, in light and dark mode
