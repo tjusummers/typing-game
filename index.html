@@ -180,7 +180,7 @@ h1{font-size:clamp(26px,5vw,40px);line-height:1.05;margin:0;font-weight:700;text
 .label{font-weight:600;margin:12px 0 6px;text-align:start}
 .choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 #modes,#speeds,#games{grid-template-columns:repeat(2,minmax(0,1fr))}
-#games button:last-child:nth-child(odd){grid-column:1/-1}
+#games button:last-child:nth-child(odd),#speeds button:last-child:nth-child(odd){grid-column:1/-1}
 #games button{display:grid;justify-items:center;align-content:start;gap:2px;padding:10px 4px;font-size:15px;line-height:1.2}
 #games .em{font-size:34px;line-height:1}
 button{font:inherit;font-weight:600;border:0;border-radius:14px;min-height:44px;padding:8px 10px;cursor:pointer;color:var(--ink);background:var(--key);box-shadow:0 3px 0 var(--keyedge)}
@@ -316,12 +316,8 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
           <div class="label">Level</div>
           <div class="levels" id="levels"></div>
         </div>
-        <div class="label" id="speedLabel">Speed</div>
-        <div class="choices" id="speeds">
-          <button type="button" data-speed="slow" aria-pressed="true">Slow</button>
-          <button type="button" data-speed="medium" aria-pressed="false">Medium</button>
-          <button type="button" data-speed="fast" aria-pressed="false">Fast</button>
-          <button type="button" data-speed="super" aria-pressed="false">Super fast</button>
+        <div class="label" id="speedLabel">Level</div>
+        <div class="levels" id="speeds">
         </div>
         <button type="button" class="go" id="startBtn">Start</button>
         <p id="bestLine" style="margin:10px 0 0" aria-live="polite"></p>
@@ -488,20 +484,25 @@ const CITIES = [
   ['austin','TX',30.27,-97.74],['san antonio','TX',29.42,-98.49],['salt lake city','UT',40.76,-111.89],['burlington','VT',44.48,-73.21],['virginia beach','VA',36.85,-75.98],
   ['seattle','WA',47.61,-122.33],['spokane','WA',47.66,-117.43],['charleston','WV',38.35,-81.63],['milwaukee','WI',43.04,-87.91],['cheyenne','WY',41.14,-104.82]
 ];
-const LIFE = {slow: 11, medium: 8, fast: 6, super: 4.2}; // seconds a country name stays up
+const LIFE = {superslow: 16, slow: 11.5, medium: 8, fast: 5.5, super: 3.8}; // seconds a country or state name stays up
 // lane: vertical centre (% of stage), direction, how likely it is picked
 const LANES = {s: {y: .17, dir: -1, w: .25, cls: 'fly'}, g: {y: .52, dir: 1, w: .5, cls: ''}, w: {y: .83, dir: -1, w: .25, cls: 'swim'}};
 const SEA_LANES = {u: {y: .2, dir: 1, w: .3, cls: 'swim'}, m: {y: .5, dir: -1, w: .35, cls: 'swim'}, f: {y: .78, dir: 1, w: .35, cls: 'swim'}};
 const ARCTIC_LANES = {s: {y: .17, dir: 1, w: .3, cls: 'fly'}, g: {y: .52, dir: -1, w: .45, cls: ''}, w: {y: .83, dir: 1, w: .25, cls: 'swim'}};
 const THEMES = {jungle: {list: ANIMALS, lanes: LANES}, sea: {list: SEA, lanes: SEA_LANES}, arctic: {list: ARCTIC, lanes: ARCTIC_LANES}};
 const COLORS = ['#ff6b57','#ffb020','#36b37e','#3d8bff','#a463f2','#ff4fa3','#00b8c4'];
-const SPEEDS = {slow: 28, medium: 42, fast: 60, super: 82};
-const CROSS = {slow: 15, medium: 11, fast: 8, super: 5.5}; // seconds for an animal to cross
+const SPEEDS = {superslow: 16, slow: 26, medium: 40, fast: 60, super: 88}; // balloon rise, pixels per second
+const CROSS = {superslow: 24, slow: 16, medium: 11, fast: 7.5, super: 5}; // seconds for an animal to cross
+const SPAWN = {superslow: 1.5, slow: 1.2, medium: 1, fast: .85, super: .7}; // slower levels send new things less often
+// games 1-6: each speed is a level; pass a level to unlock the next one
+const SPEED_ORDER = ['superslow', 'slow', 'medium', 'fast', 'super'];
+const SPEED_NAMES = {superslow: 'Super slow', slow: 'Slow', medium: 'Medium', fast: 'Fast', super: 'Super fast'};
+const PASS_RATE = .8, PASS_MIN = 8; // catch at least 8 of every 10 that appear, and at least 8 in all
 const ROWS = ['qwertyuiop','asdfghjkl','zxcvbnm'];
 const GAME_SECONDS = 120;
 const DESC = {finger: 'For beginners: type one letter at a time with the right finger. The colors show which finger presses which key. Finish a level to unlock the next one.', balloon: 'Type the letter or word on a balloon before it floats away.', jungle: "Type each animal's name before it leaves the jungle.", sea: 'Type the name of each sea creature or plant before it drifts away. No word shows up twice in a game. Some names have two words, so use the space bar!', arctic: 'Type each Arctic word before it slides away. Watch for Santa, polar bears and the northern lights!', world: 'A country name pops up in the right spot on the map. Type it before its timer runs out. Countries you find turn green!', usa: 'A state or city name pops up in the right spot on the US map. Type it before its timer runs out. Pick states, cities or both.'};
 
-let game = 'balloon', mode = 'home', speedKey = 'slow', usMode = 'states';
+let game = 'balloon', mode = 'home', speedKey = 'superslow', usMode = 'states';
 let S = null, raf = 0, last = 0, audio = null, nextId = 0;
 const isWords = () => game !== 'balloon' || mode === 'words' || mode === 'long';
 
@@ -521,6 +522,17 @@ const scoreKind = () => game === 'balloon' ? mode : game === 'usa' ? 'usa-' + us
 function bestKey(){ return 'bpt-best-' + player + '-' + scoreKind(); }
 function getBest(){ return player ? +load(bestKey(), 0) : 0; }
 function setBest(v){ if (player) save(bestKey(), v); }
+const lvKey = () => 'bpt-lv-' + player + '-' + scoreKind();
+const passedIdx = () => player ? +load(lvKey(), -1) : -1;
+function renderSpeedLevels(){
+  const done = passedIdx(), open = Math.min(SPEED_ORDER.length - 1, done + 1);
+  let i = SPEED_ORDER.indexOf(speedKey);
+  if (i < 0 || i > open) i = open;
+  speedKey = SPEED_ORDER[i];
+  $('speeds').innerHTML = SPEED_ORDER.map((k, j) =>
+    `<button type="button" data-speed="${k}" aria-pressed="${j === i}" ${j > open ? 'disabled' : ''}>${j + 1}. ${SPEED_NAMES[k]}` +
+    `<small>${j > open ? 'Locked' : j <= done ? 'Passed ✓' : 'Not passed yet'}</small></button>`).join('');
+}
 function showBest(){
   const line = $('bestLine'); line.classList.remove('need');
   if (game === 'finger'){
@@ -528,6 +540,7 @@ function showBest(){
     line.textContent = player ? `${player} has finished ${done} of ${FLEVELS.length} levels.` : '';
     renderLevels(); return;
   }
+  renderSpeedLevels();
   const b = getBest(); line.textContent = player && b ? `${player}'s best here: ${b}` : '';
 }
 function renderPlayers(){
@@ -554,6 +567,7 @@ $('removeBtn').addEventListener('click', () => {
   if (!removeArmed){ removeArmed = true; rb.classList.add('sure'); rb.textContent = `Tap again to remove ${player} and their scores`; return; }
   ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
   try { localStorage.removeItem(fKey()); } catch(e){}
+  ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-lv-' + player + '-' + m); } catch(e){} });
   players = players.filter(n => n !== player); player = players[0] || null; renderPlayers();
 });
 
@@ -598,7 +612,7 @@ $('levels').addEventListener('click', e => {
 /* ---------- menu choices ---------- */
 function pick(group, attr, cb){
   $(group).addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
     $(group).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
     cb(b.dataset[attr]); showBest();
   });
@@ -958,16 +972,16 @@ function tick(now){
   if (S.running && !S.paused){
     S.timeLeft -= dt; updateTime();
     if (S.timeLeft <= 0){ gameOver(); return; }
-    const boost = 1 + Math.min(.8, S.pops * .012);
+    const boost = 1 + Math.min(.35, S.pops * .008);
     S.spawnIn -= dt;
     if (MAPS[game]){
-      if (S.spawnIn <= 0 && S.items.length < 2){ spawnPlace(); S.spawnIn = 1.2; }
+      if (S.spawnIn <= 0 && S.items.length < 2){ spawnPlace(); S.spawnIn = 1.2 * SPAWN[speedKey]; }
       for (const c of [...S.items]){
         c.age += dt * boost; c.prog = c.age / c.life; placePin(c);
         if (c.prog >= 1) escape(c);
       }
     } else if (game !== 'balloon'){
-      if (S.spawnIn <= 0 && S.items.length < 3){ spawnAnimal(); S.spawnIn = Math.max(1.2, 2.6 - S.pops * .02); }
+      if (S.spawnIn <= 0 && S.items.length < 3){ spawnAnimal(); S.spawnIn = Math.max(1.2, 2.6 - S.pops * .02) * SPAWN[speedKey]; }
       const W = stage.clientWidth, span = W + 140;
       for (const a of [...S.items]){
         const secs = CROSS[speedKey] * (1 + Math.max(0, a.text.length - 4) * .08);
@@ -980,7 +994,7 @@ function tick(now){
       const H = stage.clientHeight;
       const v = SPEEDS[speedKey] * (mode === 'long' ? .75 : 1) * boost;
       const maxOn = mode === 'long' ? 3 : isWords() ? 4 : 5;
-      if (S.spawnIn <= 0 && S.items.length < maxOn){ spawnBalloon(); S.spawnIn = Math.max(.9, (mode === 'long' ? 4.5 : isWords() ? 3.4 : 2.2) - S.pops * .02); }
+      if (S.spawnIn <= 0 && S.items.length < maxOn){ spawnBalloon(); S.spawnIn = Math.max(.9, (mode === 'long' ? 4.5 : isWords() ? 3.4 : 2.2) - S.pops * .02) * SPAWN[speedKey]; }
       for (const b of [...S.items]){
         b.y += v * dt; b.wob += dt * 2; b.prog = b.y / (H + 10);
         b.el.style.transform = `translate(${b.x + Math.sin(b.wob) * 6}px,${-b.y}px)`;
@@ -1085,9 +1099,16 @@ function gameOver(){
   if (isBest) setBest(S.score);
   const what = game === 'balloon' ? 'popped' : MAPS[game] ? 'found' : 'named', thing = {balloon: 'balloon', jungle: 'animal', sea: 'sea word', arctic: 'Arctic word', world: 'country', usa: 'place'}[game];
   S.timeLeft = 0; updateTime(); beep(660, .4);
-  $('overTitle').textContent = isBest ? `Time's up! New best, ${player}!` : `Time's up! Great job, ${player}!`;
-  $('overText').textContent = `You scored ${S.score} and ${what} ${S.pops} ${S.pops === 1 ? thing : thing === 'country' ? 'countries' : thing + 's'} in 2 minutes.` + (!isBest && best ? ` Best is ${best}.` : '');
-  $('nextBtn').hidden = true;
+  const lv = SPEED_ORDER.indexOf(speedKey), seen = S.pops + S.missed;
+  const passed = S.pops >= PASS_MIN && S.pops >= seen * PASS_RATE, last = lv === SPEED_ORDER.length - 1;
+  if (passed && lv > passedIdx()) save(lvKey(), lv);
+  const things = n => n === 1 ? thing : thing === 'country' ? 'countries' : thing + 's';
+  $('overTitle').textContent = passed ? `Level ${lv + 1} passed, ${player}!` : `Time's up! Nice try, ${player}!`;
+  $('overText').textContent = `You ${what} ${S.pops} of ${seen} ${things(seen)} and scored ${S.score}.` +
+    (isBest ? ' That is a new best!' : best ? ` Best is ${best}.` : '') +
+    (passed ? (last ? ' You passed every level!' : ` Level ${lv + 2} (${SPEED_NAMES[SPEED_ORDER[lv + 1]]}) is unlocked.`)
+            : ` To pass, catch at least 8 out of every 10${S.pops < PASS_MIN ? ', and at least 8 in all' : ''}.`);
+  $('nextBtn').hidden = !passed || last;
   $('over').hidden = false; updateKeyHint(); endPlay();
 }
 
@@ -1121,7 +1142,11 @@ typer.addEventListener('blur', () => setTimeout(fitStage, 100));
 
 $('startBtn').addEventListener('click', start);
 $('againBtn').addEventListener('click', start);
-$('nextBtn').addEventListener('click', () => { fLevel = Math.min(fLevel + 1, fUnlocked()); start(); });
+$('nextBtn').addEventListener('click', () => {
+  if (game === 'finger') fLevel = Math.min(fLevel + 1, fUnlocked());
+  else speedKey = SPEED_ORDER[Math.min(SPEED_ORDER.indexOf(speedKey) + 1, passedIdx() + 1, SPEED_ORDER.length - 1)];
+  start();
+});
 $('menuBtn').addEventListener('click', quit);
 $('pauseBtn').addEventListener('click', togglePause);
 $('quitBtn').addEventListener('click', quit);
