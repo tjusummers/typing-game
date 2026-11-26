@@ -184,6 +184,51 @@ header.top{margin-bottom:12px}
 .levels button:disabled{opacity:.45;cursor:not-allowed}
 .stars{color:#f5a400;letter-spacing:1px}
 
+/* finger start boss: the crazy ABC song */
+.song{display:none;position:relative;width:min(900px,100%)}
+.stage.song-on .song{display:flex;gap:10px;align-items:stretch}
+.song .staff{flex:1}
+.stage.song-on .fs-target{display:none}
+.staff{position:relative;height:200px;border-radius:18px;overflow:hidden;
+  background:repeating-linear-gradient(180deg,transparent 0 20px,light-dark(#2a1d4a,#d8d0ff) 20px 22px) 0 40px/100% 110px no-repeat,light-dark(#fffdf5,#2b2459);
+  box-shadow:inset 0 0 0 3px light-dark(#efe4c8,#3d3478)}
+.staff .clef{position:absolute;left:10px;top:52px;font-size:58px;line-height:1;z-index:2}
+.staff .hitline{position:absolute;left:96px;top:10px;bottom:10px;width:8px;margin-left:-4px;border-radius:4px;background:linear-gradient(180deg,#ffd34d,#ff8a00);box-shadow:0 0 14px #ffb020;z-index:1}
+.note{position:absolute;left:0;top:0;z-index:2;width:0;height:0}
+.note .head{position:absolute;left:-22px;top:-16px;width:44px;height:32px;border-radius:50%;background:var(--fc);border:3px solid var(--fc);transform:rotate(-15deg);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.note.half .head{background:#fff}
+.note .stem{position:absolute;left:17px;top:-62px;width:4px;height:58px;background:light-dark(#2a1d4a,#d8d0ff);border-radius:2px}
+.note.eighth .stem::after{content:"";position:absolute;left:2px;top:0;width:14px;height:22px;border-radius:0 14px 0 0;border-right:4px solid light-dark(#2a1d4a,#d8d0ff);border-top:4px solid light-dark(#2a1d4a,#d8d0ff)}
+.note .ledger{position:absolute;left:-30px;top:-1px;width:60px;height:2px;background:light-dark(#2a1d4a,#d8d0ff)}
+.note .lt{position:absolute;left:-22px;top:-16px;width:44px;height:32px;display:grid;place-items:center;font-weight:700;font-size:22px;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.note.half .lt{color:#2a1d4a;text-shadow:none}
+.note.target .head{box-shadow:0 0 0 4px #fff,0 0 16px 4px var(--fc)}
+.note.hit .head{animation:notehit .35s ease-out forwards}
+.note.hit .lt{color:#fff}
+@keyframes notehit{to{transform:rotate(-15deg) scale(1.6);opacity:0}}
+.note.miss .head{background:#b8b8c8;border-color:#b8b8c8}
+.note.miss .lt::after{content:"✗";position:absolute;color:#e5484d;font-size:16px;top:-14px;right:-6px}
+.maestro-wrap{flex:none;width:150px;display:grid;justify-items:center;align-content:end;pointer-events:none}
+.maestro{width:84px;height:auto;--mc:#8e6cf0;animation:mbounce var(--beat,1s) ease-in-out infinite alternate}
+.maestro .mh{fill:var(--mc)}.maestro .mbrow{stroke:#2a1d4a;stroke-width:4;stroke-linecap:round;opacity:0}
+.maestro.faster{--mc:#ff8a00}.maestro.faster .mbrow,.maestro.crazy .mbrow{opacity:1}
+.maestro.crazy{--mc:#ff3b30;animation:mcrazy var(--beat,.5s) ease-in-out infinite alternate}
+@keyframes mbounce{to{transform:translateY(-8px)}}
+@keyframes mcrazy{from{transform:rotate(-14deg) translateY(0)}to{transform:rotate(14deg) translateY(-10px)}}
+.m-say{order:-1;background:#fff;color:#2a1d4a;font-weight:700;border-radius:14px;padding:4px 10px;margin-bottom:6px;box-shadow:0 3px 0 rgba(0,0,0,.15);text-align:center;font-size:15px;line-height:1.25}
+.m-say:empty{display:none}
+.m-say.shout{color:#d92b2b}
+.round-banner{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:2px;z-index:4;font-weight:700;color:#2a1d4a;background:rgba(255,253,245,.78);pointer-events:none;text-align:center;line-height:1.05}
+.round-banner small{font-size:20px;color:#6b5b8a}
+.round-banner .rg{font-size:72px;color:#8e6cf0;animation:pulse .5s}
+.round-banner.is-go .rg{color:#16a874;font-size:88px;animation:gopop .35s ease-out}
+@keyframes gopop{from{transform:scale(.4)}70%{transform:scale(1.15)}}
+.fs-top .lives{color:#ff3b5c;font-size:22px;letter-spacing:2px;line-height:1}
+.fs-top .lives.hit{animation:pulse .3s}
+.song-card{background:linear-gradient(135deg,#fff3d1,#ffe3f0)}
+.song-card button{background:#ff8a00;box-shadow:0 3px 0 #c46a00}
+@media(prefers-reduced-motion:reduce){.maestro,.maestro.crazy{animation:none}}
+
 /* balloon boss */
 .boss{position:absolute;inset:0;pointer-events:none}
 .boss .monster{z-index:1}.boss-say,.boss-bar{z-index:3}
@@ -364,6 +409,11 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
         <div class="bc-text"><b>Boss battle</b><small id="bossInfo"></small></div>
         <button type="button" id="bossBtn">Fight!</button>
       </div>
+      <div class="boss-card song-card" id="songBox" hidden>
+        <span class="bc-ico">🎵</span>
+        <div class="bc-text"><b>Boss: Crazy ABC Song</b><small id="songInfo"></small></div>
+        <button type="button" id="songBtn">Play!</button>
+      </div>
       <button type="button" class="go" id="startBtn">Start</button>
       <p id="bestLine" class="best" aria-live="polite"></p>
     </div>
@@ -423,8 +473,21 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
       <div class="snowfall"></div>
     </div>
     <div class="finger-scene" id="fingerScene">
-      <div class="fs-top"><span id="fsLevel">Level 1</span><div class="fs-prog"><i id="fsBar"></i></div><span id="fsCount">0/20</span></div>
+      <div class="fs-top"><span id="fsLevel">Level 1</span><div class="fs-prog"><i id="fsBar"></i></div><span id="fsCount">0/20</span><span class="lives" id="songLives" hidden>♥♥♥</span></div>
       <div class="fs-target"><div class="fs-letter" id="fsLetter">F</div><div class="fs-say" id="fsSay"></div></div>
+      <div class="song" id="song">
+        <div class="staff" id="staff"><span class="clef">🎼</span><div class="hitline"></div></div>
+        <div class="maestro-wrap"><svg class="maestro" id="maestro" viewBox="0 0 90 120" aria-hidden="true">
+            <path d="M58 12 V84" stroke="#2a1d4a" stroke-width="7" stroke-linecap="round"/>
+            <path d="M58 12 q26 10 22 40 q-6 -18 -22 -20z" fill="#2a1d4a"/>
+            <ellipse cx="38" cy="88" rx="30" ry="23" class="mh" transform="rotate(-18 38 88)"/>
+            <circle cx="28" cy="84" r="7" fill="#fff"/><circle cx="46" cy="79" r="7" fill="#fff"/>
+            <circle cx="29" cy="85" r="3.5" fill="#2a1d4a"/><circle cx="47" cy="80" r="3.5" fill="#2a1d4a"/>
+            <path d="M20 74 l14 4 M54 70 l-12 6" class="mbrow"/>
+            <path d="M30 96 q8 7 16 -2" fill="none" stroke="#2a1d4a" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="22" cy="94" rx="5" ry="3" fill="#ff9bb5" opacity=".8"/><ellipse cx="54" cy="88" rx="5" ry="3" fill="#ff9bb5" opacity=".8"/>
+          </svg><div class="m-say" id="mSay"></div></div>
+      </div>
       <div class="fs-kb" id="fsKb"></div>
       <svg class="hands" id="hands" viewBox="0 0 520 160" aria-hidden="true"></svg>
     </div>
@@ -702,7 +765,7 @@ $('removeBtn').addEventListener('click', () => {
   const rb = $('removeBtn');
   if (!removeArmed){ removeArmed = true; rb.classList.add('sure'); rb.textContent = `Tap again to remove ${player} and their scores`; return; }
   ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
-  try { localStorage.removeItem(fKey()); localStorage.removeItem('bpt-boss-' + player); } catch(e){}
+  try { localStorage.removeItem(fKey()); localStorage.removeItem('bpt-boss-' + player); localStorage.removeItem('bpt-fboss-' + player); } catch(e){}
   ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-lv-' + player + '-' + m); } catch(e){} });
   players = players.filter(n => n !== player); player = players[0] || null; renderPlayers();
 });
@@ -923,7 +986,7 @@ const GAMES = [
 ];
 const KINDS = {balloon: ['home', 'all', 'words', 'long'], usa: ['usa-states', 'usa-cities', 'usa-both']};
 function progressText(g){
-  if (g === 'finger'){ const done = Object.values(fStars()).filter(n => n >= 1).length; return `⭐ ${done}/${FLEVELS.length}`; }
+  if (g === 'finger'){ const done = Object.values(fStars()).filter(n => n >= 1).length; return `⭐ ${done}/${FLEVELS.length}` + (load('bpt-fboss-' + player, false) ? ' 👑' : ''); }
   const kinds = KINDS[g] || [g];
   const done = kinds.reduce((t, k) => t + (+load('bpt-lv-' + player + '-' + k, -1) + 1), 0);
   return `⭐ ${done}/${kinds.length * SPEED_ORDER.length}` + (g === 'balloon' && load('bpt-boss-' + player, false) ? ' 👑' : '');
@@ -1030,7 +1093,8 @@ function start(){
   $('boss').hidden = !S.boss; if (S.boss){ $('monster').style.left = $('bossSay').style.left = ''; bossMood('calm', 'Ready? Here I come!'); bossHp(); }
   updateStats(); focusTyper();
   cancelAnimationFrame(raf);
-  if (game === 'finger'){ fingerBegin(); return; }
+  stage.classList.remove('song-on'); $('songLives').hidden = true; $('fsCount').hidden = false;
+  if (game === 'finger'){ const song = songNext; songNext = false; S.song = null; if (song) songBegin(); else fingerBegin(); return; }
   last = performance.now(); raf = requestAnimationFrame(tick);
 }
 
@@ -1053,6 +1117,151 @@ function drawFingerKb(){
     `<div class="row"><span class="k space" data-k=" " style="--fc:${FINGERS.th[1]}">space</span></div>`;
 }
 drawHands(); drawFingerKb();
+
+/* ---------- finger start boss: the crazy ABC song ---------- */
+// the alphabet song melody: [letter, note, beats]
+const ABC_SONG = [['a','C4',1],['b','C4',1],['c','G4',1],['d','G4',1],['e','A4',1],['f','A4',1],['g','G4',2],
+  ['h','F4',1],['i','F4',1],['j','E4',1],['k','E4',1],['l','D4',.5],['m','D4',.5],['n','D4',.5],['o','D4',.5],['p','C4',2],
+  ['q','G4',1],['r','G4',1],['s','F4',2],['t','E4',1],['u','E4',1],['v','D4',2],
+  ['w','G4',2],['x','F4',2],['y','E4',2],['z','D4',2]];
+const PITCH = {C4: [261.63, 170], D4: [293.66, 159], E4: [329.63, 148], F4: [349.23, 137], G4: [392, 126], A4: [440, 115]}; // [Hz, spot on the staff]
+const SONG_ROUNDS = [{bpm: 48, name: 'Very slow', mood: 'calm', say: 'Sing along! Type each letter!'},
+                     {bpm: 78, name: 'Faster!', mood: 'faster', say: 'Faster! Faster!'},
+                     {bpm: 112, name: 'CRAZY FAST!', mood: 'crazy', say: 'CRAZY FAST!!!'}];
+const SONG_LIVES = 3, PX_PER_BEAT = 110, HIT_X = 96;
+let songNext = false;
+function songUnlocked(){ return isDad() || FLEVELS.every((_, i) => (fStars()[i] || 0) >= 1); }
+function renderSongBox(){
+  const box = $('songBox'); box.hidden = game !== 'finger'; if (box.hidden) return;
+  const done = Object.values(fStars()).filter(n => n >= 1).length, beaten = load('bpt-fboss-' + player, false);
+  $('songBtn').disabled = !songUnlocked();
+  $('songInfo').textContent = !songUnlocked() ? `Locked. Finish all ${FLEVELS.length} Finger Start levels to unlock (${done}/${FLEVELS.length} done).`
+    : beaten ? 'Beaten 👑 Play it again any time! You can miss 3 notes.' : 'Play the ABC song 3 times, faster and faster! You can miss 3 notes.';
+}
+function speak(text){
+  try {
+    const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; u.pitch = 1.3; u.volume = 1;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch(e){}
+}
+function tone(freq, dur){
+  if (!audio) return;
+  try {
+    const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+    o.type = 'triangle'; o.frequency.value = freq;
+    g.gain.setValueAtTime(.001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.connect(g).connect(audio.destination); o.start(t); o.stop(t + dur + .05);
+  } catch(e){}
+}
+function maestro(mood, say, beatSec){
+  const m = $('maestro'); m.classList.remove('faster', 'crazy'); if (mood !== 'calm') m.classList.add(mood);
+  if (beatSec) m.style.setProperty('--beat', beatSec + 's');
+  const b = $('mSay'); b.textContent = say || ''; b.classList.toggle('shout', mood !== 'calm');
+}
+function songBegin(){
+  stage.classList.add('song-on');
+  S.song = {round: -1, t: 0, notes: [], idx: 0, wait: 0, done: 0, total: ABC_SONG.length * SONG_ROUNDS.length};
+  $('songLives').hidden = false; $('fsCount').hidden = true;
+  $('fsLevel').textContent = 'Crazy ABC Song';
+  songLives(); nextRound();
+  cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(songLoop);
+}
+function songLives(){
+  const lv = Math.max(0, SONG_LIVES - S.missed), el = $('songLives');
+  el.textContent = '♥'.repeat(lv) + '♡'.repeat(SONG_LIVES - lv); el.setAttribute('aria-label', `${lv} misses left`);
+}
+function nextRound(){
+  const G = S.song; G.round++;
+  const R = SONG_ROUNDS[G.round];
+  $('staff').querySelectorAll('.note,.round-banner').forEach(n => n.remove());
+  if (!R) return songDone();
+  G.bpm = R.bpm; G.pps = PX_PER_BEAT * R.bpm / 60; G.idx = 0; G.notes = [];
+  // the first note starts just off the right edge
+  const W = $('staff').clientWidth; let beat = 0;
+  G.t = -(W - HIT_X + 30) / G.pps - 1.5;
+  for (const [ch, p, len] of ABC_SONG){
+    const el = document.createElement('div');
+    el.className = 'note' + (len >= 2 ? ' half' : len < 1 ? ' eighth' : '');
+    el.style.setProperty('--fc', FINGERS[KEY_FINGER[ch]][1]);
+    el.innerHTML = `${p === 'C4' ? '<span class="ledger"></span>' : ''}<span class="stem"></span><span class="head"></span><span class="lt">${ch.toUpperCase()}</span>`;
+    $('staff').appendChild(el);
+    G.notes.push({ch, p, len, time: beat * 60 / R.bpm, el, state: ''});
+    beat += len;
+  }
+  // "Ready... Go!" before every round: the notes wait until Go
+  const ban = document.createElement('div'); ban.className = 'round-banner';
+  ban.innerHTML = `<small>Round ${G.round + 1} of 3 · ${R.name}</small><span class="rg">Ready…</span>`;
+  $('staff').appendChild(ban); G.ban = ban; G.hold = 2.6; G.go = false;
+  speak('Ready'); beep(520, .15);
+  maestro(R.mood, R.say, 60 / R.bpm);
+  songTarget();
+}
+function songTarget(){
+  const G = S.song, n = G.notes[G.idx];
+  G.notes.forEach((x, i) => x.el.classList.toggle('target', i === G.idx));
+  const ch = n ? n.ch : null;
+  $('fsKb').querySelectorAll('.k').forEach(k => k.classList.toggle('target', k.dataset.k === ch));
+  $('hands').querySelectorAll('.finger').forEach(el => el.classList.toggle('on', !!ch && el.dataset.f === KEY_FINGER[ch]));
+  $('fsBar').style.width = (G.done / G.total * 100) + '%';
+}
+function songLoop(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (!S || !S.running || !S.song) return;
+  const G = S.song;
+  if (G.hold > 0){
+    G.hold -= dt;
+    if (!G.go && G.hold <= 1){ G.go = true; G.ban.classList.add('is-go'); G.ban.querySelector('.rg').textContent = 'GO!'; speak('Go!'); beep(880, .2); }
+    if (G.hold <= 0) G.ban.remove();
+  } else G.t += dt;
+  for (const n of G.notes){
+    const x = HIT_X + (n.time - G.t) * G.pps;
+    n.el.style.transform = `translate(${x}px,${PITCH[n.p][1]}px)`;
+    n.x = x;
+  }
+  // a note that slides past the line without being typed is a miss
+  const cur = G.notes[G.idx];
+  if (cur && cur.x < HIT_X - 34){
+    cur.state = 'miss'; cur.el.classList.add('miss'); G.idx++; G.done++;
+    S.missed++; S.streak = 0; updateStats(); beep(150, .25, 'square');
+    const h = $('songLives'); songLives(); h.classList.remove('hit'); void h.offsetWidth; h.classList.add('hit');
+    if (S.missed > SONG_LIVES) return songDone();
+    songTarget();
+  }
+  // round over once the last note has left the staff
+  const lastN = G.notes[G.notes.length - 1];
+  if (G.idx >= G.notes.length && lastN && lastN.x < -60){ nextRound(); if (!S.running) return; }
+  raf = requestAnimationFrame(songLoop);
+}
+function songKey(ch){
+  const G = S.song, n = G.notes[G.idx];
+  if (!n || ch === ' ') return;
+  const W = $('staff').clientWidth;
+  if (ch === n.ch && n.x < W - 20){
+    n.state = 'hit'; n.el.classList.add('hit'); G.idx++; G.done++;
+    tone(PITCH[n.p][0], Math.min(.7, n.len * 60 / G.bpm * .9));
+    S.score++; S.streak++; updateStats(); flashFs(ch, 'good');
+    setTimeout(() => n.el.remove(), 360);
+    songTarget();
+  } else {
+    flashFs(ch, 'bad'); S.streak = 0; updateStats(); beep(140, .1, 'square');
+  }
+}
+function songDone(){
+  S.running = false; cancelAnimationFrame(raf);
+  const win = S.missed <= SONG_LIVES;
+  if (win) save('bpt-fboss-' + player, true);
+  maestro('calm', win ? 'Bravo! Bravo!' : 'Ha! Try again!');
+  if (win){ // play the last line of the song as a little victory tune
+    const tune = [['C4',1],['C4',1],['G4',1],['G4',1],['A4',1],['A4',1],['G4',2]];
+    let at = 0; tune.forEach(([p, len]) => { setTimeout(() => tone(PITCH[p][0], len * .28), at * 280); at += len; });
+  } else beep(300, .5);
+  $('fsBar').style.width = '100%';
+  $('overTitle').textContent = win ? `You played the Crazy ABC Song, ${player}! 👑` : 'Game over! The song got away.';
+  $('overText').textContent = win
+    ? `You hit ${S.score} of ${S.song.total} notes across all 3 rounds.`
+    : `${S.missed} notes got away. You can miss 3, but the 4th one ends the song. You hit ${S.score} notes.`;
+  $('nextBtn').hidden = true; $('over').hidden = false; endPlay();
+}
 
 function fingerBegin(){
   const L = FLEVELS[fLevel];
@@ -1120,7 +1329,7 @@ function fingerDone(){
   $('over').hidden = false; endPlay();
 }
 function clearThings(){
-  stage.querySelectorAll('.balloon,.animal,.pin,.burst').forEach(n => n.remove());
+  stage.querySelectorAll('.balloon,.animal,.pin,.burst,.note,.round-banner').forEach(n => n.remove());
   for (const k in MAPS){ Object.values(MAPS[k].paths).forEach(p => p.classList.remove('active', 'found', 'hint')); if (MAPS[k].dots) MAPS[k].dots.innerHTML = ''; }
   kb.querySelectorAll('.hot').forEach(k => k.classList.remove('hot'));
 }
@@ -1224,6 +1433,7 @@ function bossDone(){
 }
 function bossUnlocked(){ return isDad() || KINDS.balloon.every(k => +load('bpt-lv-' + player + '-' + k, -1) >= SPEED_ORDER.length - 1); }
 function renderBossBox(){
+  renderSongBox();
   const box = $('bossBox'); box.hidden = game !== 'balloon'; if (box.hidden) return;
   const done = KINDS.balloon.reduce((t, k) => t + (+load('bpt-lv-' + player + '-' + k, -1) + 1), 0), open = bossUnlocked(), beaten = load('bpt-boss-' + player, false);
   $('bossBtn').disabled = !open;
@@ -1395,7 +1605,7 @@ function flashKey(ch){
 function handleChar(ch){
   ch = ch.toLowerCase();
   if (!/^[a-z ]$/.test(ch) || !S || !S.running || S.paused) return;
-  if (game === 'finger') return fingerKey(ch);
+  if (game === 'finger') return S.song ? songKey(ch) : fingerKey(ch);
   // a stray space only matters in the middle of a two-word name
   if (ch === ' ' && !(S.lock && S.lock.text[S.lock.typed] === ' ')) return;
   flashKey(ch);
@@ -1492,7 +1702,8 @@ typer.addEventListener('focus', () => setTimeout(fitStage, 300));
 typer.addEventListener('blur', () => setTimeout(fitStage, 100));
 
 $('startBtn').addEventListener('click', start);
-$('againBtn').addEventListener('click', () => { if (S && S.boss) bossNext = true; start(); });
+$('againBtn').addEventListener('click', () => { if (S && S.boss) bossNext = true; if (S && S.song) songNext = true; start(); });
+$('songBtn').addEventListener('click', () => { if (!songUnlocked()) return; songNext = true; start(); });
 $('bossBtn').addEventListener('click', () => { if (!bossUnlocked()) return; bossNext = true; start(); });
 $('nextBtn').addEventListener('click', () => {
   if (game === 'finger') fLevel = Math.min(fLevel + 1, fUnlocked());
