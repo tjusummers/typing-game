@@ -4,7 +4,7 @@ A playful typing game for kids that runs in any web browser. Open `index.html` t
 
 ## Games
 0. 🖐️ **Finger Start** – for beginners: one letter at a time, with a color-coded keyboard and hands that show which finger to use. 8 levels that unlock one by one (the bumps, home row, top row, bottom row and more)
-1. 🎈 **Balloon Pop** – type letters or words on balloons before they float away (home row, all letters, short words, or longer words). Pass all 20 levels to unlock the 👾 **Balloon Boss**: 60 balloons, angry waves and a super mad finish
+1. 🎈 **Balloon Pop** – type letters or words on balloons before they float away (home row, all letters, short words, or longer words). Pass all 20 levels to unlock the 👾 **Balloon Boss**: 60 balloons, angry waves and a super mad finish. The boss paces faster the angrier it gets, and you can only let 3 balloons get away
 2. 🐘 **Jungle Animals** – type animal names before they leave the jungle
 3. 🐙 **Sea World** – name sea creatures and plants as they drift by
 4. 🐻‍❄️ **Arctic** – Santa, polar bears, northern lights and more

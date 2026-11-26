@@ -185,12 +185,15 @@ header.top{margin-bottom:12px}
 .stars{color:#f5a400;letter-spacing:1px}
 
 /* balloon boss */
-.boss{position:absolute;inset:0;pointer-events:none;z-index:1}
+.boss{position:absolute;inset:0;pointer-events:none}
+.boss .monster{z-index:1}.boss-say,.boss-bar{z-index:3}
 .boss-bar{position:absolute;top:10px;left:12px;right:12px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
 .boss-bar .hp{flex:1;height:14px;border-radius:8px;background:rgba(0,0,0,.2);overflow:hidden;box-shadow:inset 0 2px 0 rgba(0,0,0,.15)}
 .boss-bar .hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff4fa3,#a463f2);border-radius:8px;transition:width .3s}
 .boss-bar span{white-space:nowrap}
-.monster{position:absolute;bottom:2px;left:50%;width:clamp(110px,22vw,160px);transform:translateX(-50%);overflow:visible;--mb:#8e6cf0;--md:#6b4bd6;transition:filter .3s}
+.boss-bar .lives{color:#ff3b5c;font-size:22px;letter-spacing:2px;background:#fff;border-radius:12px;padding:0 8px;text-shadow:none;line-height:1.3}
+.boss-bar .lives.hit{animation:pulse .3s}
+.monster{position:absolute;bottom:2px;left:50%;width:clamp(140px,28vw,220px);transform:translateX(-50%);overflow:visible;--mb:#8e6cf0;--md:#6b4bd6;transition:filter .3s}
 .monster .bd{fill:var(--mb)}.monster .dk{fill:var(--md)}
 .monster .arm{fill:none;stroke:var(--mb);stroke-width:12;stroke-linecap:round}
 .monster .str{stroke:#6a7f95;stroke-width:1.5}
@@ -208,7 +211,7 @@ header.top{margin-bottom:12px}
 .monster:is(.angry,.mad) .steam{opacity:.9;animation:puff .8s ease-out infinite}
 @keyframes puff{from{transform:translateY(4px);opacity:.9}to{transform:translateY(-6px);opacity:.2}}
 .monster.beaten{--mb:#b8a6f5;--md:#9a86e6;animation:none;transform:translateX(-50%) rotate(-8deg)}
-.boss-say{position:absolute;left:50%;bottom:clamp(128px,26vw,178px);transform:translateX(-50%);background:#fff;color:#2a1d4a;font-weight:700;border-radius:16px;padding:6px 14px;white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:17px}
+.boss-say{position:absolute;left:50%;bottom:clamp(140px,28vw,220px);transform:translateX(-50%);background:#fff;color:#2a1d4a;font-weight:700;border-radius:16px;padding:6px 14px;white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:17px}
 .boss-say:empty{display:none}
 .boss-say::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
 .boss-say.shout{color:#d92b2b;font-size:20px}
@@ -230,6 +233,7 @@ header.top{margin-bottom:12px}
 .balloon::before{content:"";position:absolute;bottom:-7px;left:50%;margin-left:-6px;border:6px solid transparent;border-bottom-color:var(--c);transform:rotate(180deg)}
 .balloon.word{width:auto;min-width:96px;padding:0 16px;font-size:28px;margin-left:-48px;border-radius:46px/52px;height:80px}
 .balloon.long{font-size:24px}
+@media(max-width:600px){.balloon.word{min-width:72px;height:66px;padding:0 12px;font-size:22px;margin-left:-36px}.balloon.long{font-size:19px}}
 .done{opacity:.4}
 .balloon.locked{outline:4px solid #fff;outline-offset:3px}
 .balloon.pop{animation:pop .25s ease-out forwards}
@@ -427,7 +431,7 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
     <div class="world-scene" id="worldScene"><p class="map-note">Loading the map…</p></div>
     <div class="world-scene" id="usScene"><p class="map-note">Loading the map…</p></div>
     <div class="boss" id="boss" hidden>
-      <div class="boss-bar"><span class="bb-name">👾 Balloon Boss</span><div class="hp"><i id="bossHp"></i></div><span id="bossLeft">60 left</span></div>
+      <div class="boss-bar"><span class="bb-name">👾 Balloon Boss</span><div class="hp"><i id="bossHp"></i></div><span id="bossLeft">60 left</span><span class="lives" id="bossLives" aria-label="Misses left">♥♥♥</span></div>
       <div class="boss-say" id="bossSay"></div>
       <svg class="monster" id="monster" viewBox="0 0 160 150" aria-hidden="true">
           <line x1="12" y1="40" x2="16" y2="66" class="str"/><line x1="148" y1="40" x2="144" y2="66" class="str"/>
@@ -1023,7 +1027,7 @@ function start(){
   $('pauseBtn').textContent = 'Pause'; $('pauseBtn').hidden = false; $('quitBtn').hidden = false;
   document.body.classList.add('playing');
   $('timer').hidden = game === 'finger' || !!S.boss; $('pauseBtn').hidden = game === 'finger';
-  $('boss').hidden = !S.boss; if (S.boss){ bossMood('calm', 'Ready? Here I come!'); bossHp(); }
+  $('boss').hidden = !S.boss; if (S.boss){ $('monster').style.left = $('bossSay').style.left = ''; bossMood('calm', 'Ready? Here I come!'); bossHp(); }
   updateStats(); focusTyper();
   cancelAnimationFrame(raf);
   if (game === 'finger'){ fingerBegin(); return; }
@@ -1125,7 +1129,7 @@ function focusTyper(){ try { typer.focus({preventScroll: true}); } catch(e){} }
 /* ---------- balloon boss ---------- */
 // 60 balloons: 50 short words and 10 long words, in seven stages
 let bossNext = false;
-const BOSS_TOTAL = 60, BOSS_WIN = 48; // pop 48 of 60 (8 of every 10) to win
+const BOSS_TOTAL = 60, BOSS_LIVES = 3; // 3 balloons may get away; the 4th one loses the battle
 const shuffled = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
 function buildBoss(){
   const sh = shuffled(WORDS).slice(0, 50), lg = shuffled(LONG).slice(0, 10);
@@ -1157,12 +1161,25 @@ function bossBalloon(item, sp, tx){
   const W = stage.clientWidth, el = document.createElement('div');
   el.className = 'balloon word' + (item.long ? ' long' : '');
   el.style.setProperty('--c', COLORS[nextId % COLORS.length]);
-  const b = {id: nextId++, text: item.w, typed: 0, x: W / 2, tx, y: Math.min(150, $('monster').getBoundingClientRect().height + 10), wob: Math.random() * 6, prog: 0, el,
+  const b = {id: nextId++, text: item.w, typed: 0, x: S.boss.mx == null ? W / 2 : S.boss.mx, tx, y: Math.min(stage.clientHeight * .45, $('monster').getBoundingClientRect().height + 10), wob: Math.random() * 6, prog: 0, el,
     v: SPEEDS[sp] * (item.long ? .75 : 1)};
   stage.appendChild(el); S.items.push(b); renderText(b);
 }
 function bossTick(dt){
   const B = S.boss, W = stage.clientWidth;
+  // the boss paces left and right when angry, faster when super mad, and walks back to the middle when calm
+  const m = $('monster'), mr = m.getBoundingClientRect(), say = $('bossSay');
+  const pace = m.classList.contains('mad') ? 280 : m.classList.contains('angry') ? 120 : 0;
+  if (B.mx == null){ B.mx = W / 2; B.dir = 1; }
+  const lo = mr.width / 2 + 6, hi = W - mr.width / 2 - 6;
+  if (pace){
+    B.mx += B.dir * pace * dt;
+    if (B.mx > hi){ B.mx = hi; B.dir = -1; } else if (B.mx < lo){ B.mx = lo; B.dir = 1; }
+  } else B.mx += (W / 2 - B.mx) * Math.min(1, dt * 2);
+  m.style.left = B.mx + 'px';
+  const sw = say.offsetWidth / 2 + 6;
+  say.style.left = Math.min(Math.max(B.mx, sw), W - sw) + 'px';
+  say.style.bottom = (mr.height + 10) + 'px';
   const col = () => 70 + Math.random() * Math.max(10, W - 140);
   let P = B.phases[B.pi];
   if (!P || (B.k >= P.words.length && !S.items.length)){
@@ -1186,18 +1203,23 @@ function bossTick(dt){
 function bossHp(){
   $('bossHp').style.width = Math.max(0, (BOSS_TOTAL - S.pops) / BOSS_TOTAL * 100) + '%';
   $('bossLeft').textContent = `${BOSS_TOTAL - S.pops - S.missed} left`;
+  const lv = Math.max(0, BOSS_LIVES - S.missed), el = $('bossLives');
+  el.textContent = '♥'.repeat(lv) + '♡'.repeat(BOSS_LIVES - lv);
+  el.setAttribute('aria-label', `${lv} misses left`);
 }
 function bossDone(){
   S.running = false; cancelAnimationFrame(raf);
-  const win = S.pops >= BOSS_WIN;
+  const win = S.missed <= BOSS_LIVES;
+  if (!win){ for (const b of S.items) b.el.remove(); S.items = []; }
   if (win) save('bpt-boss-' + player, true);
   const best = getBest(), isBest = S.score > best; if (isBest) setBest(S.score);
   bossMood('calm', win ? 'Oh no! You win...' : 'Hee hee! Try again!');
   if (win) $('monster').classList.add('beaten');
   beep(win ? 780 : 300, .5);
-  $('overTitle').textContent = win ? `You beat the Balloon Boss, ${player}! 👑` : `The Balloon Boss got away!`;
-  $('overText').textContent = `You popped ${S.pops} of ${BOSS_TOTAL} balloons and scored ${S.score}.` + (isBest ? ' That is a new best!' : '') +
-    (win ? '' : ` Pop at least ${BOSS_WIN} to win.`);
+  $('overTitle').textContent = win ? `You beat the Balloon Boss, ${player}! 👑` : `Game over! The Balloon Boss wins.`;
+  $('overText').textContent = win
+    ? `You popped ${S.pops} of ${BOSS_TOTAL} balloons and scored ${S.score}.` + (isBest ? ' That is a new best!' : '')
+    : `${S.missed} balloons got away. You can miss 3, but the 4th one ends the battle. You popped ${S.pops} and scored ${S.score}.`;
   $('nextBtn').hidden = true; $('over').hidden = false; endPlay();
 }
 function bossUnlocked(){ return isDad() || KINDS.balloon.every(k => +load('bpt-lv-' + player + '-' + k, -1) >= SPEED_ORDER.length - 1); }
@@ -1206,7 +1228,7 @@ function renderBossBox(){
   const done = KINDS.balloon.reduce((t, k) => t + (+load('bpt-lv-' + player + '-' + k, -1) + 1), 0), open = bossUnlocked(), beaten = load('bpt-boss-' + player, false);
   $('bossBtn').disabled = !open;
   $('bossInfo').textContent = !open ? `Locked. Pass all 20 Balloon Pop levels to unlock (${done}/20 done).`
-    : beaten ? 'Beaten 👑 Fight again any time!' : '60 balloons, angry waves and a super mad finish!';
+    : beaten ? 'Beaten 👑 Fight again any time! You can miss 3 balloons.' : '60 balloons, angry waves and a super mad finish! You can miss 3 balloons.';
 }
 
 function spawnBalloon(){
@@ -1334,7 +1356,11 @@ function remove(b){ S.items = S.items.filter(x => x !== b); if (S.lock === b) S.
 function escape(b){
   remove(b); b.el.remove();
   S.missed++; S.streak = 0; beep(180, .3, 'sine'); updateStats();
-  if (S.boss) bossHp();
+  if (S.boss){
+    bossHp();
+    const h = $('bossLives'); h.classList.remove('hit'); void h.offsetWidth; h.classList.add('hit');
+    if (S.missed > BOSS_LIVES) bossDone();
+  }
 }
 
 function pop(b){
