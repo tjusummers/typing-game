@@ -184,6 +184,42 @@ header.top{margin-bottom:12px}
 .levels button:disabled{opacity:.45;cursor:not-allowed}
 .stars{color:#f5a400;letter-spacing:1px}
 
+/* balloon boss */
+.boss{position:absolute;inset:0;pointer-events:none;z-index:1}
+.boss-bar{position:absolute;top:10px;left:12px;right:12px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.boss-bar .hp{flex:1;height:14px;border-radius:8px;background:rgba(0,0,0,.2);overflow:hidden;box-shadow:inset 0 2px 0 rgba(0,0,0,.15)}
+.boss-bar .hp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff4fa3,#a463f2);border-radius:8px;transition:width .3s}
+.boss-bar span{white-space:nowrap}
+.monster{position:absolute;bottom:2px;left:50%;width:clamp(110px,22vw,160px);transform:translateX(-50%);overflow:visible;--mb:#8e6cf0;--md:#6b4bd6;transition:filter .3s}
+.monster .bd{fill:var(--mb)}.monster .dk{fill:var(--md)}
+.monster .arm{fill:none;stroke:var(--mb);stroke-width:12;stroke-linecap:round}
+.monster .str{stroke:#6a7f95;stroke-width:1.5}
+.monster .mouth{fill:none;stroke:#2a1d4a;stroke-width:4;stroke-linecap:round}
+.monster .brow{fill:none;stroke:#2a1d4a;stroke-width:6;stroke-linecap:round;opacity:0}
+.monster .angry-m,.monster .steam{opacity:0}
+.monster .steam{fill:#fff}
+.monster{animation:bossbob 1.2s ease-in-out infinite alternate}
+@keyframes bossbob{to{transform:translateX(-50%) translateY(-6px)}}
+.monster.angry{--mb:#ea5a86;--md:#c43c68}
+.monster.mad{--mb:#ff3b30;--md:#c3241b;animation:bossshake .18s linear infinite}
+@keyframes bossshake{25%{transform:translateX(calc(-50% - 4px))}75%{transform:translateX(calc(-50% + 4px))}}
+.monster:is(.angry,.mad) .brow,.monster:is(.angry,.mad) .angry-m{opacity:1}
+.monster:is(.angry,.mad) .calm-m{opacity:0}
+.monster:is(.angry,.mad) .steam{opacity:.9;animation:puff .8s ease-out infinite}
+@keyframes puff{from{transform:translateY(4px);opacity:.9}to{transform:translateY(-6px);opacity:.2}}
+.monster.beaten{--mb:#b8a6f5;--md:#9a86e6;animation:none;transform:translateX(-50%) rotate(-8deg)}
+.boss-say{position:absolute;left:50%;bottom:clamp(128px,26vw,178px);transform:translateX(-50%);background:#fff;color:#2a1d4a;font-weight:700;border-radius:16px;padding:6px 14px;white-space:nowrap;box-shadow:0 4px 0 rgba(0,0,0,.15);font-size:17px}
+.boss-say:empty{display:none}
+.boss-say::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+.boss-say.shout{color:#d92b2b;font-size:20px}
+.boss-card{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,#efe7ff,#ffe3f0);color:#2a1d4a}
+.boss-card .bc-ico{font-size:40px;line-height:1}
+.boss-card .bc-text{flex:1;display:grid}
+.boss-card small{color:#5b4b7a;font-size:14px}
+.boss-card button{background:#8e6cf0;color:#fff;box-shadow:0 3px 0 #6b4bd6}
+.boss-card button:disabled{opacity:.45;cursor:not-allowed}
+@media(prefers-reduced-motion:reduce){.monster,.monster.mad,.monster .steam{animation:none}}
+
 /* balloons */
 .balloon{position:absolute;bottom:0;left:0;width:78px;height:92px;margin-left:-39px;z-index:2;
   border-radius:50% 50% 47% 53%/58% 58% 42% 42%;display:grid;place-items:center;
@@ -319,6 +355,11 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
       </div>
       <div class="label" id="speedLabel">Level</div>
       <div class="levels" id="speeds"></div>
+      <div class="boss-card" id="bossBox" hidden>
+        <span class="bc-ico">👾</span>
+        <div class="bc-text"><b>Boss battle</b><small id="bossInfo"></small></div>
+        <button type="button" id="bossBtn">Fight!</button>
+      </div>
       <button type="button" class="go" id="startBtn">Start</button>
       <p id="bestLine" class="best" aria-live="polite"></p>
     </div>
@@ -385,6 +426,29 @@ button[aria-pressed=true]{background:#ffd34d;color:#3a2a00}
     </div>
     <div class="world-scene" id="worldScene"><p class="map-note">Loading the map…</p></div>
     <div class="world-scene" id="usScene"><p class="map-note">Loading the map…</p></div>
+    <div class="boss" id="boss" hidden>
+      <div class="boss-bar"><span class="bb-name">👾 Balloon Boss</span><div class="hp"><i id="bossHp"></i></div><span id="bossLeft">60 left</span></div>
+      <div class="boss-say" id="bossSay"></div>
+      <svg class="monster" id="monster" viewBox="0 0 160 150" aria-hidden="true">
+          <line x1="12" y1="40" x2="16" y2="66" class="str"/><line x1="148" y1="40" x2="144" y2="66" class="str"/>
+          <circle cx="12" cy="30" r="11" fill="#ff4fa3"/><circle cx="148" cy="30" r="11" fill="#3d8bff"/>
+          <circle cx="8" cy="26" r="3" fill="#fff" opacity=".7"/><circle cx="144" cy="26" r="3" fill="#fff" opacity=".7"/>
+          <ellipse cx="56" cy="141" rx="17" ry="8" class="dk"/><ellipse cx="104" cy="141" rx="17" ry="8" class="dk"/>
+          <path d="M48 36 L40 8 L64 28Z M112 36 L120 8 L96 28Z" fill="#ffd34d"/>
+          <path d="M24 84 Q8 74 16 64 M136 84 Q152 74 144 64" class="arm"/>
+          <path d="M80 22 C122 22 146 52 146 90 C146 124 118 142 80 142 C42 142 14 124 14 90 C14 52 38 22 80 22Z" class="bd"/>
+          <circle cx="64" cy="26" r="9" class="bd"/><circle cx="80" cy="22" r="10" class="bd"/><circle cx="96" cy="26" r="9" class="bd"/>
+          <ellipse cx="80" cy="108" rx="40" ry="28" fill="#fff" opacity=".22"/>
+          <circle cx="60" cy="72" r="16" fill="#fff"/><circle cx="100" cy="72" r="16" fill="#fff"/>
+          <circle cx="63" cy="75" r="8" fill="#2a1d4a"/><circle cx="97" cy="75" r="8" fill="#2a1d4a"/>
+          <circle cx="66" cy="71" r="2.8" fill="#fff"/><circle cx="100" cy="71" r="2.8" fill="#fff"/>
+          <path d="M42 50 L74 60 M118 50 L86 60" class="brow"/>
+          <ellipse cx="42" cy="94" rx="9" ry="5" fill="#ff9bb5" opacity=".75"/><ellipse cx="118" cy="94" rx="9" ry="5" fill="#ff9bb5" opacity=".75"/>
+          <path d="M66 96 Q80 112 94 96" class="mouth calm-m"/><path d="M73 100 l3 6 l3 -5z" fill="#fff" class="calm-m"/>
+          <path d="M64 108 Q80 94 96 108" class="mouth angry-m"/><path d="M70 104 l3 -6 l3 5z M84 104 l3 -6 l3 5z" fill="#fff" class="angry-m"/>
+          <g class="steam"><circle cx="34" cy="16" r="7"/><circle cx="26" cy="6" r="5"/><circle cx="126" cy="16" r="7"/><circle cx="134" cy="6" r="5"/></g>
+        </svg>
+    </div>
     <input id="typer" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here">
 
 
@@ -568,7 +632,7 @@ const DESC = {finger: 'For beginners: type one letter at a time with the right f
 
 let game = 'balloon', mode = 'home', speedKey = 'superslow', usMode = 'states';
 let S = null, raf = 0, last = 0, audio = null, nextId = 0;
-const isWords = () => game !== 'balloon' || mode === 'words' || mode === 'long';
+const isWords = () => game !== 'balloon' || mode === 'words' || mode === 'long' || !!(S && S.boss);
 
 kb.innerHTML = ROWS.map((r, i) => `<div class="row">${[...r].map(ch =>
   `<span class="k${i === 1 ? ' home' : ''}${'fj'.includes(ch) ? ' bump' : ''}" data-k="${ch}">${ch.toUpperCase()}</span>`).join('')}</div>`).join('')
@@ -586,10 +650,12 @@ const scoreKind = () => game === 'balloon' ? mode : game === 'usa' ? 'usa-' + us
 function bestKey(){ return 'bpt-best-' + player + '-' + scoreKind(); }
 function getBest(){ return player ? +load(bestKey(), 0) : 0; }
 function setBest(v){ if (player) save(bestKey(), v); }
+// a player named Dad gets every game and level unlocked
+function isDad(){ return !!player && player.trim().toLowerCase() === 'dad'; }
 const lvKey = () => 'bpt-lv-' + player + '-' + scoreKind();
 const passedIdx = () => player ? +load(lvKey(), -1) : -1;
 function renderSpeedLevels(){
-  const done = passedIdx(), open = Math.min(SPEED_ORDER.length - 1, done + 1);
+  const done = passedIdx(), open = isDad() ? SPEED_ORDER.length - 1 : Math.min(SPEED_ORDER.length - 1, done + 1);
   let i = SPEED_ORDER.indexOf(speedKey);
   if (i < 0 || i > open) i = open;
   speedKey = SPEED_ORDER[i];
@@ -598,6 +664,7 @@ function renderSpeedLevels(){
     `<small>${j > open ? 'Locked' : j <= done ? 'Passed ✓' : 'Not passed yet'}</small></button>`).join('');
 }
 function showBest(){
+  renderBossBox(); // the boss card belongs to Balloon Pop only
   const line = $('bestLine'); line.classList.remove('need');
   if (game === 'finger'){
     const done = Object.values(fStars()).filter(n => n >= 1).length;
@@ -631,7 +698,7 @@ $('removeBtn').addEventListener('click', () => {
   const rb = $('removeBtn');
   if (!removeArmed){ removeArmed = true; rb.classList.add('sure'); rb.textContent = `Tap again to remove ${player} and their scores`; return; }
   ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-best-' + player + '-' + m); } catch(e){} });
-  try { localStorage.removeItem(fKey()); } catch(e){}
+  try { localStorage.removeItem(fKey()); localStorage.removeItem('bpt-boss-' + player); } catch(e){}
   ['home','all','words','long','jungle','sea','arctic','world','usa-states','usa-cities','usa-both'].forEach(m => { try { localStorage.removeItem('bpt-lv-' + player + '-' + m); } catch(e){} });
   players = players.filter(n => n !== player); player = players[0] || null; renderPlayers();
 });
@@ -658,7 +725,7 @@ const PER_LEVEL = 20;
 let fLevel = 0;
 const fKey = () => 'bpt-finger-' + player;
 const fStars = () => player ? load(fKey(), {}) : {};
-const fUnlocked = () => { const st = fStars(); let u = 0; while (u < FLEVELS.length - 1 && st[u] >= 1) u++; return u; };
+const fUnlocked = () => { if (isDad()) return FLEVELS.length - 1; const st = fStars(); let u = 0; while (u < FLEVELS.length - 1 && st[u] >= 1) u++; return u; };
 const starText = n => '★'.repeat(n) + '☆'.repeat(3 - n);
 function renderLevels(){
   const st = fStars(), u = fUnlocked();
@@ -855,7 +922,7 @@ function progressText(g){
   if (g === 'finger'){ const done = Object.values(fStars()).filter(n => n >= 1).length; return `⭐ ${done}/${FLEVELS.length}`; }
   const kinds = KINDS[g] || [g];
   const done = kinds.reduce((t, k) => t + (+load('bpt-lv-' + player + '-' + k, -1) + 1), 0);
-  return `⭐ ${done}/${kinds.length * SPEED_ORDER.length}`;
+  return `⭐ ${done}/${kinds.length * SPEED_ORDER.length}` + (g === 'balloon' && load('bpt-boss-' + player, false) ? ' 👑' : '');
 }
 // two layouts: tall for phones, wide for bigger screens; numbers are spots on the drawing
 const LAYOUTS = {
@@ -908,7 +975,7 @@ function renderMap(){
 }
 function openMap(){
   if (!player){ go('players'); return; }
-  $('mapWho').textContent = player; go('map'); renderMap();
+  $('mapWho').textContent = player + (isDad() ? ' (everything is unlocked for you)' : ''); go('map'); renderMap();
 }
 function openGame(g){
   setGame(g); save('bpt-last-' + player, g);
@@ -949,12 +1016,14 @@ function start(){
   }
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch(e){ audio = null; }
   clearThings();
-  S = {items: [], used: new Set(), score: 0, streak: 0, timeLeft: GAME_SECONDS, missed: 0, spawnIn: .3, pops: 0, running: true, paused: false, lock: null};
+  const boss = bossNext && game === 'balloon'; bossNext = false;
+  S = {boss: boss ? buildBoss() : null, items: [], used: new Set(), score: 0, streak: 0, timeLeft: GAME_SECONDS, missed: 0, spawnIn: .3, pops: 0, running: true, paused: false, lock: null};
   go('play'); $('over').hidden = true;
   $('who').textContent = player; $('who').hidden = false;
   $('pauseBtn').textContent = 'Pause'; $('pauseBtn').hidden = false; $('quitBtn').hidden = false;
   document.body.classList.add('playing');
-  $('timer').hidden = game === 'finger'; $('pauseBtn').hidden = game === 'finger';
+  $('timer').hidden = game === 'finger' || !!S.boss; $('pauseBtn').hidden = game === 'finger';
+  $('boss').hidden = !S.boss; if (S.boss){ bossMood('calm', 'Ready? Here I come!'); bossHp(); }
   updateStats(); focusTyper();
   cancelAnimationFrame(raf);
   if (game === 'finger'){ fingerBegin(); return; }
@@ -1053,6 +1122,93 @@ function clearThings(){
 }
 function focusTyper(){ try { typer.focus({preventScroll: true}); } catch(e){} }
 
+/* ---------- balloon boss ---------- */
+// 60 balloons: 50 short words and 10 long words, in seven stages
+let bossNext = false;
+const BOSS_TOTAL = 60, BOSS_WIN = 48; // pop 48 of 60 (8 of every 10) to win
+const shuffled = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function buildBoss(){
+  const sh = shuffled(WORDS).slice(0, 50), lg = shuffled(LONG).slice(0, 10);
+  let si = 0, li = 0;
+  const S1 = () => ({w: sh[si++], long: false}), L1 = () => ({w: lg[li++], long: true});
+  const many = (n, f) => Array.from({length: n}, f);
+  // a wave of 5 at once uses 5 different first letters, so the first key always picks one balloon
+  const wave = () => { const out = [];
+    for (let j = si; j < sh.length && out.length < 5; j++) if (!out.some(w => w[0] === sh[j][0])) out.push(sh[j]);
+    out.forEach(w => { const k = sh.indexOf(w, si); [sh[si], sh[k]] = [sh[k], sh[si]]; si++; });
+    return out.map(w => ({w, long: false})); };
+  const phases = [];
+  phases.push({type: 'one', words: many(10, S1), speed: 'superslow', mood: 'calm', say: 'Hee hee! Pop my balloons!'});
+  phases.push({type: 'wave', words: wave(), speed: 'superslow', mood: 'angry', say: 'GRRR! Five at once!'});
+  phases.push({type: 'one', words: many(10, S1), speed: 'medium', mood: 'calm', say: 'Hmph. Faster now!'});
+  phases.push({type: 'wave', words: wave(), speed: 'medium', mood: 'angry', say: 'GRRR! Take that!'});
+  phases.push({type: 'one', words: many(10, (_, i) => i % 2 ? L1() : S1()), speed: 'medium', mood: 'calm', say: 'Long words too! Hee hee!'});
+  phases.push({type: 'wave', words: wave(), speed: 'fast', mood: 'angry', say: 'GRRR! Fast ones!'});
+  const last = [];
+  while (si < sh.length || li < lg.length){ if (si < sh.length) last.push(S1()); if (si < sh.length) last.push(S1()); if (li < lg.length) last.push(L1()); }
+  phases.push({type: 'one', overlap: 1, words: last, speed: 'super', mood: 'mad', say: 'I AM SUPER MAD!!!'});
+  return {phases, pi: -1, k: 0, wait: 1, started: false, left: BOSS_TOTAL};
+}
+function bossMood(mood, say){
+  const m = $('monster'); m.classList.remove('angry', 'mad', 'beaten'); if (mood !== 'calm') m.classList.add(mood);
+  const b = $('bossSay'); b.textContent = say || ''; b.classList.toggle('shout', mood !== 'calm');
+}
+function bossBalloon(item, sp, tx){
+  const W = stage.clientWidth, el = document.createElement('div');
+  el.className = 'balloon word' + (item.long ? ' long' : '');
+  el.style.setProperty('--c', COLORS[nextId % COLORS.length]);
+  const b = {id: nextId++, text: item.w, typed: 0, x: W / 2, tx, y: Math.min(150, $('monster').getBoundingClientRect().height + 10), wob: Math.random() * 6, prog: 0, el,
+    v: SPEEDS[sp] * (item.long ? .75 : 1)};
+  stage.appendChild(el); S.items.push(b); renderText(b);
+}
+function bossTick(dt){
+  const B = S.boss, W = stage.clientWidth;
+  const col = () => 70 + Math.random() * Math.max(10, W - 140);
+  let P = B.phases[B.pi];
+  if (!P || (B.k >= P.words.length && !S.items.length)){
+    // this stage is over: wait for the sky to clear, then start the next one
+    if (S.items.length) return;
+    B.wait -= dt; if (B.wait > 0) return;
+    B.pi++; B.k = 0; P = B.phases[B.pi];
+    if (!P) return bossDone();
+    bossMood(P.mood, P.say); B.wait = P.type === 'wave' ? 1.2 : .9; return;
+  }
+  B.wait -= dt;
+  if (B.k >= P.words.length || B.wait > 0) return;
+  if (P.type === 'wave'){
+    P.words.forEach((it, i) => bossBalloon(it, P.speed, 70 + (i + .5) / P.words.length * Math.max(10, W - 140)));
+    B.k = P.words.length; B.wait = 1.4;
+  } else if (P.overlap || !S.items.length){
+    bossBalloon(P.words[B.k++], P.speed, col());
+    B.wait = P.overlap || .6;
+  }
+}
+function bossHp(){
+  $('bossHp').style.width = Math.max(0, (BOSS_TOTAL - S.pops) / BOSS_TOTAL * 100) + '%';
+  $('bossLeft').textContent = `${BOSS_TOTAL - S.pops - S.missed} left`;
+}
+function bossDone(){
+  S.running = false; cancelAnimationFrame(raf);
+  const win = S.pops >= BOSS_WIN;
+  if (win) save('bpt-boss-' + player, true);
+  const best = getBest(), isBest = S.score > best; if (isBest) setBest(S.score);
+  bossMood('calm', win ? 'Oh no! You win...' : 'Hee hee! Try again!');
+  if (win) $('monster').classList.add('beaten');
+  beep(win ? 780 : 300, .5);
+  $('overTitle').textContent = win ? `You beat the Balloon Boss, ${player}! 👑` : `The Balloon Boss got away!`;
+  $('overText').textContent = `You popped ${S.pops} of ${BOSS_TOTAL} balloons and scored ${S.score}.` + (isBest ? ' That is a new best!' : '') +
+    (win ? '' : ` Pop at least ${BOSS_WIN} to win.`);
+  $('nextBtn').hidden = true; $('over').hidden = false; endPlay();
+}
+function bossUnlocked(){ return isDad() || KINDS.balloon.every(k => +load('bpt-lv-' + player + '-' + k, -1) >= SPEED_ORDER.length - 1); }
+function renderBossBox(){
+  const box = $('bossBox'); box.hidden = game !== 'balloon'; if (box.hidden) return;
+  const done = KINDS.balloon.reduce((t, k) => t + (+load('bpt-lv-' + player + '-' + k, -1) + 1), 0), open = bossUnlocked(), beaten = load('bpt-boss-' + player, false);
+  $('bossBtn').disabled = !open;
+  $('bossInfo').textContent = !open ? `Locked. Pass all 20 Balloon Pop levels to unlock (${done}/20 done).`
+    : beaten ? 'Beaten 👑 Fight again any time!' : '60 balloons, angry waves and a super mad finish!';
+}
+
 function spawnBalloon(){
   const W = stage.clientWidth;
   const list = mode === 'long' ? LONG : WORDS;
@@ -1136,8 +1292,7 @@ function renderText(b){
 function tick(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   if (S.running && !S.paused){
-    S.timeLeft -= dt; updateTime();
-    if (S.timeLeft <= 0){ gameOver(); return; }
+    if (!S.boss){ S.timeLeft -= dt; updateTime(); if (S.timeLeft <= 0){ gameOver(); return; } }
     const boost = 1 + Math.min(.35, S.pops * .008);
     S.spawnIn -= dt;
     if (MAPS[game]){
@@ -1160,9 +1315,11 @@ function tick(now){
       const H = stage.clientHeight;
       const v = SPEEDS[speedKey] * (mode === 'long' ? .75 : 1) * boost;
       const maxOn = mode === 'long' ? 3 : isWords() ? 4 : 5;
-      if (S.spawnIn <= 0 && S.items.length < maxOn){ spawnBalloon(); S.spawnIn = Math.max(.9, (mode === 'long' ? 4.5 : isWords() ? 3.4 : 2.2) - S.pops * .02) * SPAWN[speedKey]; }
+      if (S.boss){ bossTick(dt); if (!S.running) return; }
+      else if (S.spawnIn <= 0 && S.items.length < maxOn){ spawnBalloon(); S.spawnIn = Math.max(.9, (mode === 'long' ? 4.5 : isWords() ? 3.4 : 2.2) - S.pops * .02) * SPAWN[speedKey]; }
       for (const b of [...S.items]){
-        b.y += v * dt; b.wob += dt * 2; b.prog = b.y / (H + 10);
+        b.y += (b.v || v) * dt; b.wob += dt * 2; b.prog = b.y / (H + 10);
+        if (b.tx != null) b.x += (b.tx - b.x) * Math.min(1, dt * 2.5);
         b.el.style.transform = `translate(${b.x + Math.sin(b.wob) * 6}px,${-b.y}px)`;
         if (b.y > H + 10) escape(b);
       }
@@ -1177,6 +1334,7 @@ function remove(b){ S.items = S.items.filter(x => x !== b); if (S.lock === b) S.
 function escape(b){
   remove(b); b.el.remove();
   S.missed++; S.streak = 0; beep(180, .3, 'sine'); updateStats();
+  if (S.boss) bossHp();
 }
 
 function pop(b){
@@ -1195,6 +1353,7 @@ function pop(b){
   }
   b.el.classList.add(game === 'balloon' ? 'pop' : 'caught'); setTimeout(() => b.el.remove(), 460);
   beep(520 + Math.min(S.streak, 12) * 40, .15); updateStats();
+  if (S.boss) bossHp();
 }
 
 function oops(){
@@ -1307,10 +1466,11 @@ typer.addEventListener('focus', () => setTimeout(fitStage, 300));
 typer.addEventListener('blur', () => setTimeout(fitStage, 100));
 
 $('startBtn').addEventListener('click', start);
-$('againBtn').addEventListener('click', start);
+$('againBtn').addEventListener('click', () => { if (S && S.boss) bossNext = true; start(); });
+$('bossBtn').addEventListener('click', () => { if (!bossUnlocked()) return; bossNext = true; start(); });
 $('nextBtn').addEventListener('click', () => {
   if (game === 'finger') fLevel = Math.min(fLevel + 1, fUnlocked());
-  else speedKey = SPEED_ORDER[Math.min(SPEED_ORDER.indexOf(speedKey) + 1, passedIdx() + 1, SPEED_ORDER.length - 1)];
+  else speedKey = SPEED_ORDER[Math.min(SPEED_ORDER.indexOf(speedKey) + 1, isDad() ? 99 : passedIdx() + 1, SPEED_ORDER.length - 1)];
   start();
 });
 $('menuBtn').addEventListener('click', quit);
